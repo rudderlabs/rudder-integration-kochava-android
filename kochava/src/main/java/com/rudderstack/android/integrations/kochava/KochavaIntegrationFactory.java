@@ -17,15 +17,27 @@ import com.kochava.base.Tracker.Configuration;
 
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class KochavaIntegrationFactory extends RudderIntegration<RudderClient> {
     private static final String KOCHAVA_KEY = "Kochava";
-    
+    private static Map<String, Object> eventsMapping = new HashMap<String, Object>(){
+        {
+            put("product added", Tracker.EVENT_TYPE_ADD_TO_CART);
+            put("add to wishlist", Tracker.EVENT_TYPE_ADD_TO_WISH_LIST);
+            put("checkout started", Tracker.EVENT_TYPE_CHECKOUT_START);
+            put("order completed", Tracker.EVENT_TYPE_PURCHASE);
+            put("product reviewed", Tracker.EVENT_TYPE_RATING);
+            put("products searched", Tracker.EVENT_TYPE_SEARCH);
+        }
+    };
+
     public static Factory FACTORY = new Factory() {
         @Override
         public RudderIntegration<?> create(Object settings, RudderClient client, RudderConfig rudderConfig) {
-            return new KochavaIntegrationFactory(settings);
+            return new KochavaIntegrationFactory(settings, rudderConfig);
         }
 
         @Override
@@ -34,7 +46,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<RudderClient> {
         }
     };
 
-    private KochavaIntegrationFactory(@NonNull Object config) {
+    private KochavaIntegrationFactory(@NonNull Object config, RudderConfig rudderConfig) {
         if (RudderClient.getApplication() == null) {
             RudderLogger.logError("Application is null. Aborting Kochava initialization.");
             return;
@@ -55,9 +67,9 @@ public class KochavaIntegrationFactory extends RudderIntegration<RudderClient> {
         // Start the Kochava Tracker
         Tracker.configure(new Configuration(RudderClient.getApplication())
                 .setAppGuid(destinationConfig.apiKey)
-
+                .setLogLevel(configureLogLevel(rudderConfig.getLogLevel()))
         );
-
+        RudderLogger.logInfo("Initialized Kochava SDK");
     }
 
     private void processRudderEvent(RudderMessage element) {
@@ -67,60 +79,63 @@ public class KochavaIntegrationFactory extends RudderIntegration<RudderClient> {
 
                 case MessageType.TRACK:
                     String evName = (element.getEventName()).toLowerCase();
-
-                    if (evName != null) {
-
-                        JSONObject data = null;
-                        if(element.getProperties() != null)
+                    JSONObject data = null;
+                    if(element.getProperties() != null)
                         data = new JSONObject(element.getProperties());
 
-                        //Standard event
-                        if (evName.equals("product added")) {
-                            Tracker.sendEvent(new Tracker.Event(Tracker.EVENT_TYPE_ADD_TO_CART)
-                                    .addCustom(data)
-                            );
-                            return;
-                        }
-                        if (evName.equals("add to wishlist")) {
-                            Tracker.sendEvent(new Tracker.Event(Tracker.EVENT_TYPE_ADD_TO_WISH_LIST)
-                                    .addCustom(data)
-                            );
-                            return;
-                        }
-                        if (evName.equals("checkout started")) {
-                            Tracker.sendEvent(new Tracker.Event(Tracker.EVENT_TYPE_CHECKOUT_START)
-                                    .addCustom(data)
-                            );
-                            return;
-                        }
-                        if (evName.equals("order completed")) {
-                            Tracker.sendEvent(new Tracker.Event(Tracker.EVENT_TYPE_PURCHASE)
-                                    .addCustom(data)
-                            );
-                            return;
-                        }
-                        if (evName.equals("product reviewed")) {
-                            Tracker.sendEvent(new Tracker.Event(Tracker.EVENT_TYPE_RATING)
-                                    .addCustom(data)
-                            );
-                            return;
-                        }
-                        if (evName.equals("products searched")) {
-                            Tracker.sendEvent(new Tracker.Event(Tracker.EVENT_TYPE_SEARCH)
-                                    .addCustom(data)
-                            );
-                            return;
-                        }
-
-                        //Custom Event
-                        Tracker.sendEvent(evName, new Gson().toJson(element.getProperties()));
+                    //Standard event
+                    if(eventsMapping.containsKey((element.getEventName()).toLowerCase())){
+                        Tracker.sendEvent(new Tracker.Event( (Integer) eventsMapping.get(evName) )
+                                .addCustom(data)
+                        );
+                        return;
                     }
+
+
+//                        if (evName.equals("product added")) {
+//                            Tracker.sendEvent(new Tracker.Event(Tracker.EVENT_TYPE_ADD_TO_CART)
+//                                    .addCustom(data)
+//                            );
+//                            return;
+//                        }
+//                        if (evName.equals("add to wishlist")) {
+//                            Tracker.sendEvent(new Tracker.Event(Tracker.EVENT_TYPE_ADD_TO_WISH_LIST)
+//                                    .addCustom(data)
+//                            );
+//                            return;
+//                        }
+//                        if (evName.equals("checkout started")) {
+//                            Tracker.sendEvent(new Tracker.Event(Tracker.EVENT_TYPE_CHECKOUT_START)
+//                                    .addCustom(data)
+//                            );
+//                            return;
+//                        }
+//                        if (evName.equals("order completed")) {
+//                            Tracker.sendEvent(new Tracker.Event(Tracker.EVENT_TYPE_PURCHASE)
+//                                    .addCustom(data)
+//                            );
+//                            return;
+//                        }
+//                        if (evName.equals("product reviewed")) {
+//                            Tracker.sendEvent(new Tracker.Event(Tracker.EVENT_TYPE_RATING)
+//                                    .addCustom(data)
+//                            );
+//                            return;
+//                        }
+//                        if (evName.equals("products searched")) {
+//                            Tracker.sendEvent(new Tracker.Event(Tracker.EVENT_TYPE_SEARCH)
+//                                    .addCustom(data)
+//                            );
+//                            return;
+//                        }
+
+                    //Custom Event
+                    Tracker.sendEvent(evName, new Gson().toJson(element.getProperties()));
+
                     break;
                 case MessageType.SCREEN:
-                    String screenName = (element.getEventName()).toLowerCase();
-                    if (screenName != null) {
-                        Tracker.sendEvent(screenName, new Gson().toJson(element.getProperties()));
-                    }
+                    String screenName = "screen view "+(element.getEventName()).toLowerCase();
+                    Tracker.sendEvent(screenName, new Gson().toJson(element.getProperties()));
                     break;
                 default:
                     RudderLogger.logWarn("MessageType is not specified or supported");
@@ -131,7 +146,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<RudderClient> {
 
     @Override
     public void reset() {
-        
+        // nothing to do
     }
 
     @Override
@@ -148,5 +163,33 @@ public class KochavaIntegrationFactory extends RudderIntegration<RudderClient> {
     @Override
     public RudderClient getUnderlyingInstance() {
         return null;
+    }
+
+    public static void registeredForPushNotificationsWithFCMToken(String token){
+        Tracker.addPushToken(token);
+    }
+
+    private int configureLogLevel(int rsLogLevel){
+        if(rsLogLevel == RudderLogger.RudderLogLevel.VERBOSE)
+        {
+            return RudderLogger.RudderLogLevel.VERBOSE;
+        }
+        if(rsLogLevel == RudderLogger.RudderLogLevel.DEBUG)
+        {
+            return RudderLogger.RudderLogLevel.DEBUG;
+        }
+        if(rsLogLevel == RudderLogger.RudderLogLevel.INFO)
+        {
+            return RudderLogger.RudderLogLevel.INFO;
+        }
+        if(rsLogLevel == RudderLogger.RudderLogLevel.WARN)
+        {
+            return RudderLogger.RudderLogLevel.WARN;
+        }
+        if(rsLogLevel == RudderLogger.RudderLogLevel.ERROR)
+        {
+            return RudderLogger.RudderLogLevel.ERROR;
+        }
+        return RudderLogger.RudderLogLevel.NONE;
     }
 }

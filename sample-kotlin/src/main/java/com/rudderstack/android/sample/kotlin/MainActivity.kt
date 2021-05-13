@@ -1,7 +1,11 @@
 package com.rudderstack.android.sample.kotlin
 
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
 import com.rudderlabs.android.sample.kotlin.R
 import com.rudderstack.android.sdk.core.RudderProperty
@@ -11,55 +15,48 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
-//        val traits = RudderTraitsBuilder();
-//        traits.setUserName("123456789");
-//        traits.build().put("login","username");
-        //MainApplication.rudderClient.identify(traits);
-
-
-        //Standard Events
-
-//        TC:4 Track call with event name and property after Identify
-//        MainApplication.rudderClient.track("product added",
-//            RudderProperty()
-//                .putValue("Colour","Black")
-//                .putValue("Weight","25lb"))
-
-//        MainApplication.rudderClient.track("product reviewed",
-//                RudderProperty()
-//                        .putValue("Colour","Black")
-//                        .putValue("Weight","25lb"))
-
-        //Add to Cart
-        MainApplication.rudderClient.track("product added")
-
-        //Search
-        MainApplication.rudderClient.track("products searched",
-                RudderProperty()
-                        .putValue("Colour","Black")
-                        .putValue("Weight","25lb"))
-
-        //Custom Track Event
-//        MainApplication.rudderClient.track("This is custom event",
-//                RudderProperty()
-//                        .putValue("Colour","Black")
-//                        .putValue("Weight","25lb"));
-
-//        TC:5 Identify with anonymousId, email, and name
-        /*val traits1 = RudderTraits();
-        traits1.putName("Arpan Saha");
-        traits1.putEmail("hahaha@gmail.com");
-        MainApplication.rudderClient.identify(traits1);
-        */
-
+//        Standard Events
+//        TC:4 Track call with event name and property
 //        MainApplication.rudderClient.track(
 //                "Product Added",
 //                RudderProperty()
 //                        .putValue("product_id", "product_001")
 //        )
+//
+//        MainApplication.rudderClient.track("add to wishlist",
+//                RudderProperty()
+//                        .putValue("Colour","Black")
+//                        .putValue("Weight","25lb"))
+//
+//        MainApplication.rudderClient.track("checkout started",
+//                RudderProperty()
+//                        .putValue("Colour","Black")
+//                        .putValue("Weight","25lb"))
+//
+//        MainApplication.rudderClient.track("order completed",
+//                RudderProperty()
+//                        .putValue("Colour","Black")
+//                        .putValue("Weight","25lb"))
+//
+//        MainApplication.rudderClient.track("product reviewed",
+//                RudderProperty()
+//                        .putValue("Colour","Black")
+//                        .putValue("Weight","25lb"))
+//
+//        MainApplication.rudderClient.track("products searched")
 
 
+
+//        Custom Track Events:
+//        MainApplication.rudderClient.track("Youtube Opened")
+//
+//        MainApplication.rudderClient.track("Testing Token",
+//                RudderProperty()
+//                        .putValue("Colour","Black")
+//                        .putValue("Weight","25lb"));
+
+
+//        Screen Call:
 //        TC:6 Screen with identified anonymousId, name and properties
 //        MainApplication.rudderClient.screen("Flipkart Page",
 //            RudderProperty()

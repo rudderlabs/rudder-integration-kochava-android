@@ -9,8 +9,8 @@ import com.rudderstack.android.sdk.core.RudderLogger
 class MainApplication : Application() {
     companion object {
         private const val WRITE_KEY = "1s4gjAsjU2O41t6JwCGsCgZf6sg"
-        private const val DATA_PLANE_URL = "https://c7b597aceaef.ngrok.io" //"http://localhost:8080"
-        private const val CONTROL_PLANE_URL = "https://be84a643c86b.ngrok.io" //""http://localhost:5000"
+        private const val DATA_PLANE_URL = "https://6371e711cb78.ngrok.io" //"http://localhost:8080"
+        private const val CONTROL_PLANE_URL = "https://226fcd2a7c34.ngrok.io" //""http://localhost:5000"
         lateinit var rudderClient: RudderClient
     }
 
@@ -20,11 +20,12 @@ class MainApplication : Application() {
             this,
             WRITE_KEY,
             RudderConfig.Builder()
-                .withDataPlaneUrl(DATA_PLANE_URL)
-                .withControlPlaneUrl(CONTROL_PLANE_URL)
-                .withFactory(KochavaIntegrationFactory.FACTORY)
-                .withLogLevel(RudderLogger.RudderLogLevel.VERBOSE)
-                .build()
+                    .withDataPlaneUrl(DATA_PLANE_URL)
+                    .withControlPlaneUrl(CONTROL_PLANE_URL)
+                    .withFactory(KochavaIntegrationFactory.FACTORY)
+                    .withLogLevel(RudderLogger.RudderLogLevel.DEBUG)
+                    //.withLogLevel(0)
+                    .build()
         )
     }
 }
