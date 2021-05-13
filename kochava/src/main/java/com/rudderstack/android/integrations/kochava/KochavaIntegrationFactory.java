@@ -91,44 +91,6 @@ public class KochavaIntegrationFactory extends RudderIntegration<RudderClient> {
                         return;
                     }
 
-
-//                        if (evName.equals("product added")) {
-//                            Tracker.sendEvent(new Tracker.Event(Tracker.EVENT_TYPE_ADD_TO_CART)
-//                                    .addCustom(data)
-//                            );
-//                            return;
-//                        }
-//                        if (evName.equals("add to wishlist")) {
-//                            Tracker.sendEvent(new Tracker.Event(Tracker.EVENT_TYPE_ADD_TO_WISH_LIST)
-//                                    .addCustom(data)
-//                            );
-//                            return;
-//                        }
-//                        if (evName.equals("checkout started")) {
-//                            Tracker.sendEvent(new Tracker.Event(Tracker.EVENT_TYPE_CHECKOUT_START)
-//                                    .addCustom(data)
-//                            );
-//                            return;
-//                        }
-//                        if (evName.equals("order completed")) {
-//                            Tracker.sendEvent(new Tracker.Event(Tracker.EVENT_TYPE_PURCHASE)
-//                                    .addCustom(data)
-//                            );
-//                            return;
-//                        }
-//                        if (evName.equals("product reviewed")) {
-//                            Tracker.sendEvent(new Tracker.Event(Tracker.EVENT_TYPE_RATING)
-//                                    .addCustom(data)
-//                            );
-//                            return;
-//                        }
-//                        if (evName.equals("products searched")) {
-//                            Tracker.sendEvent(new Tracker.Event(Tracker.EVENT_TYPE_SEARCH)
-//                                    .addCustom(data)
-//                            );
-//                            return;
-//                        }
-
                     //Custom Event
                     Tracker.sendEvent(evName, new Gson().toJson(element.getProperties()));
 
