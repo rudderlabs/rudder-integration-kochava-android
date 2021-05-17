@@ -10,6 +10,6 @@ import com.rudderstack.android.integrations.kochava.KochavaIntegrationFactory.re
 class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        registeredForPushNotificationsWithFCMToken("c7uG_gBNLh8:APA91bGPKM-wTawyNsditdmNvFbAybGoExkQxorkCj6DFUYyfMa4YcNUNqbAVkRTvfnZuNjv1")
+        registeredForPushNotificationsWithFCMToken(token)
     }
 }
