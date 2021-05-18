@@ -52,32 +52,11 @@ class MainActivity : AppCompatActivity() {
 
 
 //        Screen Call:
-//        TC:6 Screen with identified anonymousId, name and properties
-//        MainApplication.rudderClient.screen("Flipkart Page",
+//        MainApplication.rudderClient.screen("Sample Screen Name",
 //            RudderProperty()
-//                .putValue("url","www.flipkart.com")
-//                .putValue("referer","facebook")
-//                .putValue("height",5))
+//                .putValue("prop_key","prop_value"));
 
 
-
-
-
-
-
-
-
-
-
-//        TC:13 Track call with name and properties with array of strings/integers
-//        val myArray3 = arrayOf<String>("Red","Green","Black");
-//        MainApplication.rudderClient.track("Sample event with name and array of strings.",
-//                RudderProperty().putValue("colour",myArray3));
-
-//        val intarray = arrayOf<Int>(10,20,30,40);
-//        MainApplication.rudderClient.track("Sample event with name and array of integer.",
-//            RudderProperty().putValue("size",intarray));
-//
 //        TC:14 Screen call with name
 //        MainApplication.rudderClient.screen("Flipkart Page");
 //
@@ -88,6 +67,7 @@ class MainActivity : AppCompatActivity() {
 //            RudderProperty().putValue("Dynamic", "true").putValue("Colour", "Grey"),
 //            null
 //        );
+
 
     }
 }
