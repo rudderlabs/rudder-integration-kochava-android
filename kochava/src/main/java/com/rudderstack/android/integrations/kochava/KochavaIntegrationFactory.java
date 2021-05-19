@@ -78,21 +78,40 @@ public class KochavaIntegrationFactory extends RudderIntegration<RudderClient> {
             switch (type) {
 
                 case MessageType.TRACK:
-                    String evName = (element.getEventName()).toLowerCase();
-                    JSONObject data = null;
-                    if(element.getProperties() != null)
-                        data = new JSONObject(element.getProperties());
+                    String eventName = (element.getEventName()).toLowerCase();
+                    Map<String, Object> eventProperties = element.getProperties();
 
                     //Standard event
-                    if(eventsMapping.containsKey((element.getEventName()).toLowerCase())){
-                        Tracker.sendEvent(new Tracker.Event( (Integer) eventsMapping.get(evName) )
+                    if(eventsMapping.containsKey(eventName)) {
+
+                        if(eventName.equals("order completed")) {
+                            double price = 0;
+                            if (eventProperties.containsKey("revenue")) {
+                                price = getRevenue(eventProperties.get("revenue"));
+                            }
+                            String currency = "";
+                            if (eventProperties.containsKey("currency")) {
+                                currency = (String) eventProperties.get("currency");
+                            }
+                            Tracker.sendEvent(new Tracker.Event( (Integer) eventsMapping.get(eventName) )
+                                    .setPrice(price)
+                                    .setCurrency(currency)
+                                    .addCustom(getCustomECommerceEvent(eventProperties))
+                            );
+                            return;
+                        }
+                        JSONObject data = null;
+                        if(element.getProperties() != null) {
+                            data = new JSONObject(element.getProperties());
+                        }
+                        Tracker.sendEvent(new Tracker.Event( (Integer) eventsMapping.get(eventName) )
                                 .addCustom(data)
                         );
                         return;
                     }
 
                     //Custom Event
-                    Tracker.sendEvent(evName, new Gson().toJson(element.getProperties()));
+                    Tracker.sendEvent(eventName, new Gson().toJson(element.getProperties()));
 
                     break;
                 case MessageType.SCREEN:
@@ -125,6 +144,28 @@ public class KochavaIntegrationFactory extends RudderIntegration<RudderClient> {
     @Override
     public RudderClient getUnderlyingInstance() {
         return null;
+    }
+
+    private double getRevenue(Object val) {
+        if (val != null) {
+            String str = String.valueOf(val);
+            return Double.parseDouble(str);
+        }
+        return 0;
+    }
+
+    private JSONObject getCustomECommerceEvent(Map<String, Object> eventProperties) {
+
+        if(eventProperties.containsKey("revenue")){
+            eventProperties.remove("revenue");
+        }
+        if(eventProperties.containsKey("currency")){
+            eventProperties.remove("currency");
+        }
+
+        JSONObject data = new JSONObject(eventProperties);
+        return data;
+
     }
 
     public static void registeredForPushNotificationsWithFCMToken(String token){

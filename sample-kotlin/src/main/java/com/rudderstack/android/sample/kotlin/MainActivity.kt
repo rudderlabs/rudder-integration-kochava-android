@@ -10,8 +10,16 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+
 //        Standard Events
-//        TC:4 Track call with event name and property
+//        Track call with Standard event name and Standard  property
+//        MainApplication.rudderClient.track(
+//                "order completed",
+//                RudderProperty()
+//                        .putValue("revenue", "500")
+//                        .putValue("currency", "usd")
+//        )
+//
 //        MainApplication.rudderClient.track(
 //                "Product Added",
 //                RudderProperty()
@@ -27,17 +35,12 @@ class MainActivity : AppCompatActivity() {
 //                RudderProperty()
 //                        .putValue("Colour","Black")
 //                        .putValue("Weight","25lb"))
-//
-//        MainApplication.rudderClient.track("order completed",
-//                RudderProperty()
-//                        .putValue("Colour","Black")
-//                        .putValue("Weight","25lb"))
-//
+
 //        MainApplication.rudderClient.track("product reviewed",
 //                RudderProperty()
 //                        .putValue("Colour","Black")
 //                        .putValue("Weight","25lb"))
-//
+
 //        MainApplication.rudderClient.track("products searched")
 
 
@@ -59,7 +62,7 @@ class MainActivity : AppCompatActivity() {
 
 //        TC:14 Screen call with name
 //        MainApplication.rudderClient.screen("Flipkart Page");
-//
+
 //        TC:15 Screen call with name, category and property
 //        MainApplication.rudderClient.screen(
 //            "Myntra_home",
