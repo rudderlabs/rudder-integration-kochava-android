@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class KochavaIntegrationFactory extends RudderIntegration<RudderClient> {
+public class KochavaIntegrationFactory extends RudderIntegration<void> {
     private static final String KOCHAVA_KEY = "Kochava";
     private static Map<String, Object> eventsMapping = new HashMap<String, Object>(){
         {
@@ -67,7 +67,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<RudderClient> {
         // Start the Kochava Tracker
         Tracker.configure(new Configuration(RudderClient.getApplication())
                 .setAppGuid(destinationConfig.apiKey)
-                .setLogLevel(configureLogLevel(rudderConfig.getLogLevel()))
+                .setLogLevel(rudderConfig.getLogLevel())
         );
         RudderLogger.logInfo("Initialized Kochava SDK");
     }
@@ -78,45 +78,58 @@ public class KochavaIntegrationFactory extends RudderIntegration<RudderClient> {
             switch (type) {
 
                 case MessageType.TRACK:
-                    String eventName = (element.getEventName()).toLowerCase();
-                    Map<String, Object> eventProperties = element.getProperties();
 
-                    //Standard event
-                    if(eventsMapping.containsKey(eventName)) {
-
-                        if(eventName.equals("order completed")) {
-                            double price = 0;
-                            if (eventProperties.containsKey("revenue")) {
-                                price = getRevenue(eventProperties.get("revenue"));
-                            }
-                            String currency = "";
-                            if (eventProperties.containsKey("currency")) {
-                                currency = (String) eventProperties.get("currency");
-                            }
-                            Tracker.sendEvent(new Tracker.Event( (Integer) eventsMapping.get(eventName) )
-                                    .setPrice(price)
-                                    .setCurrency(currency)
-                                    .addCustom(getCustomECommerceEvent(eventProperties))
-                            );
-                            return;
-                        }
-                        JSONObject data = null;
-                        if(element.getProperties() != null) {
-                            data = new JSONObject(element.getProperties());
-                        }
-                        Tracker.sendEvent(new Tracker.Event( (Integer) eventsMapping.get(eventName) )
-                                .addCustom(data)
-                        );
+                    String eventName = element.getEventName();
+                    if(eventName == null)
                         return;
+
+                    Map<String, Object> eventProperties = element.getProperties();
+                    Tracker.Event event = null;
+
+                    //Standard Events
+                    if(eventsMapping.containsKey(eventName.toLowerCase())) {
+
+                        eventName = eventName.toLowerCase();
+                        event = new Tracker.Event((Integer) eventsMapping.get(eventName));
+
+                        if (eventProperties != null) {
+
+                            if (eventName.equals("order completed")) {
+                                if (eventProperties.containsKey("revenue")) {
+                                    event.setPrice(getRevenue(eventProperties.get("revenue")));
+                                    eventProperties.remove("revenue");
+                                }
+                                if (eventProperties.containsKey("currency")) {
+                                    event.setCurrency((String) eventProperties.get("currency"));
+                                    eventProperties.remove("currency");
+                                }
+                            }
+                        }
                     }
 
-                    //Custom Event
-                    Tracker.sendEvent(eventName, new Gson().toJson(element.getProperties()));
+                    // Custom Events
+                    else {
+                        event = new Tracker.Event(eventName);
+                    }
+
+                    if (eventProperties != null) {
+                        event.addCustom(new JSONObject(eventProperties));
+                    }
+
+                    Tracker.sendEvent(event);
 
                     break;
                 case MessageType.SCREEN:
-                    String screenName = "screen view "+(element.getEventName()).toLowerCase();
-                    Tracker.sendEvent(screenName, new Gson().toJson(element.getProperties()));
+
+                    String screenName = element.getEventName();
+                    if(screenName == null)
+                        return;
+
+                    if(element.getProperties() != null) {
+                        Tracker.sendEvent("screen view " + screenName, new Gson().toJson(element.getProperties()));
+                        return;
+                    }
+                    Tracker.sendEvent(new Tracker.Event("screen view " + screenName));
                     break;
                 default:
                     RudderLogger.logWarn("MessageType is not specified or supported");
@@ -127,7 +140,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<RudderClient> {
 
     @Override
     public void reset() {
-        // nothing to do
+        RudderLogger.logWarn("");
     }
 
     @Override
@@ -141,11 +154,6 @@ public class KochavaIntegrationFactory extends RudderIntegration<RudderClient> {
         }
     }
 
-    @Override
-    public RudderClient getUnderlyingInstance() {
-        return null;
-    }
-
     private double getRevenue(Object val) {
         if (val != null) {
             String str = String.valueOf(val);
@@ -154,45 +162,9 @@ public class KochavaIntegrationFactory extends RudderIntegration<RudderClient> {
         return 0;
     }
 
-    private JSONObject getCustomECommerceEvent(Map<String, Object> eventProperties) {
-
-        if(eventProperties.containsKey("revenue")){
-            eventProperties.remove("revenue");
-        }
-        if(eventProperties.containsKey("currency")){
-            eventProperties.remove("currency");
-        }
-
-        JSONObject data = new JSONObject(eventProperties);
-        return data;
-
-    }
-
     public static void registeredForPushNotificationsWithFCMToken(String token){
         Tracker.addPushToken(token);
     }
 
-    private int configureLogLevel(int rsLogLevel){
-        if(rsLogLevel == RudderLogger.RudderLogLevel.VERBOSE)
-        {
-            return RudderLogger.RudderLogLevel.VERBOSE;
-        }
-        if(rsLogLevel == RudderLogger.RudderLogLevel.DEBUG)
-        {
-            return RudderLogger.RudderLogLevel.DEBUG;
-        }
-        if(rsLogLevel == RudderLogger.RudderLogLevel.INFO)
-        {
-            return RudderLogger.RudderLogLevel.INFO;
-        }
-        if(rsLogLevel == RudderLogger.RudderLogLevel.WARN)
-        {
-            return RudderLogger.RudderLogLevel.WARN;
-        }
-        if(rsLogLevel == RudderLogger.RudderLogLevel.ERROR)
-        {
-            return RudderLogger.RudderLogLevel.ERROR;
-        }
-        return RudderLogger.RudderLogLevel.NONE;
-    }
+
 }
