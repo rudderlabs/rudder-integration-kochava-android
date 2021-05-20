@@ -16,38 +16,38 @@ class MainActivity : AppCompatActivity() {
 //        Standard Events
 //        Track call with Standard event name and Standard  property
 //        payload for Ecommerce Track event
-//        val payload = RudderProperty()
-//        val productsArray = JSONArray()
-//        payload.put("order_id", 1234)
-//        payload.put("affiliation", "Apple Store")
-//        payload.put("value", 20)
-//        payload.put("revenue", 15.00)
-//        payload.put("currency", "USD")
-//        payload.put("products", productsArray)
-//        val product1 = JSONObject()
-//        product1.put("product_id", 123)
-//        product1.put("sku", "G-32")
-//        product1.put("name", "Monopoly")
-//        product1.put("price", 14)
-//        product1.put("quantity", 1)
-//        product1.put("category", "Games")
-//        product1.put("url", "https://www.website.com/product/path")
-//        product1.put("image_url", "https://www.website.com/product/path.jpg")
-//        val product2 = JSONObject()
-//        product2.put("product_id", 345)
-//        product2.put("sku", "F-32")
-//        product2.put("name", "UNO")
-//        product2.put("price", 3.45)
-//        product2.put("quantity", 2)
-//        product2.put("category", "Games")
-//        product2.put("url", "https://www.website.com/product/path")
-//        product2.put("image_url", "https://www.website.com/product/path.jpg")
-//        productsArray.put(product1)
-//        productsArray.put(product2)
-//        MainApplication.rudderClient.track(
-//                "order completed",
-//                payload
-//                )
+        val payload = RudderProperty()
+        val productsArray = JSONArray()
+        payload.put("order_id", 1234)
+        payload.put("affiliation", "Apple Store")
+        payload.put("value", 20)
+        payload.put("revenue", 15.00)
+        payload.put("currency", "USD")
+        payload.put("products", productsArray)
+        val product1 = JSONObject()
+        product1.put("product_id", 123)
+        product1.put("sku", "G-32")
+        product1.put("name", "Monopoly")
+        product1.put("price", 14)
+        product1.put("quantity", 1)
+        product1.put("category", "Games")
+        product1.put("url", "https://www.website.com/product/path")
+        product1.put("image_url", "https://www.website.com/product/path.jpg")
+        val product2 = JSONObject()
+        product2.put("productId", "345")
+        product2.put("sku", "F-32")
+        product2.put("name", "UNO")
+        product2.put("price", 3.45)
+        product2.put("quantity", 2)
+        product2.put("category", "Games")
+        product2.put("url", "https://www.website.com/product/path")
+        product2.put("image_url", "https://www.website.com/product/path.jpg")
+        productsArray.put(product1)
+        productsArray.put(product2)
+        MainApplication.rudderClient.track(
+                "order completed",
+                payload
+                )
 //
 //        val payload = RudderProperty()
 //        val productsArray = JSONArray()
@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity() {
 //        MainApplication.rudderClient.track("product added")
 //
 //        Custom Track Events:
-        MainApplication.rudderClient.track("Youtube Opened")
+//        MainApplication.rudderClient.track("Youtube Opened")
 //
 //        MainApplication.rudderClient.track("Testing Token",
 //                RudderProperty()

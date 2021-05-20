@@ -28,7 +28,7 @@ import java.util.Map;
 
 public class KochavaIntegrationFactory extends RudderIntegration<Void> {
     private static final String KOCHAVA_KEY = "Kochava";
-    private static Map<String, Object> eventsMapping = new HashMap<String, Object>(){
+    private static final Map<String, Object> eventsMapping = new HashMap<String, Object>(){
         {
             put("product added", Tracker.EVENT_TYPE_ADD_TO_CART);
             put("add to wishlist", Tracker.EVENT_TYPE_ADD_TO_WISH_LIST);
@@ -100,25 +100,16 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                         if (eventProperties != null && eventProperties.size() != 0) {
 
                             if (eventName.equals("order completed")) {
-                                if (eventProperties.containsKey("products")) {
-                                    String name = getProductProperties((JSONArray) eventProperties.get("products"),"name");
-                                    if (name != null && name.length() != 0) {
-                                        event.setName(name);
-                                    }
-
-                                    String product_id = getProductProperties((JSONArray) eventProperties.get("products"),"product_id");
-                                    if (product_id != null && product_id.length() != 0) {
-                                        event.setContentId(product_id);
-                                    }
-                                    else {
-                                        String productId = getProductProperties((JSONArray) eventProperties.get("products"),"productId");
-                                        if (productId != null && productId.length() != 0) {
-                                            event.setContentId(productId);
-                                        }
-                                    }
+                                if(eventProperties.containsKey("products")){
+                                    setProductsProperties((JSONArray) eventProperties.get("products"), event);
                                 }
                                 if (eventProperties.containsKey("revenue")) {
-                                    event.setPrice(getRevenue(eventProperties.get("revenue")));
+                                    if( isString(eventProperties.get("revenue"))) {
+                                        event.setPrice(Double.parseDouble((String) eventProperties.get("revenue")));
+                                    }
+                                    else {
+                                        event.setPrice(getRevenue(eventProperties.get("revenue")));
+                                    }
                                     eventProperties.remove("revenue");
                                 }
                                 if (eventProperties.containsKey("currency")) {
@@ -128,22 +119,8 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                             }
 
                             if (eventName.equals("checkout started")) {
-                                if (eventProperties.containsKey("products")) {
-                                    String name = getProductProperties((JSONArray) eventProperties.get("products"),"name");
-                                    if (name != null && name.length() != 0) {
-                                        event.setName(name);
-                                    }
-
-                                    String product_id = getProductProperties((JSONArray) eventProperties.get("products"),"product_id");
-                                    if (product_id != null && product_id.length() != 0) {
-                                        event.setContentId(product_id);
-                                    }
-                                    else {
-                                        String productId = getProductProperties((JSONArray) eventProperties.get("products"),"productId");
-                                        if (productId != null && productId.length() != 0) {
-                                            event.setContentId(productId);
-                                        }
-                                    }
+                                if(eventProperties.containsKey("products")){
+                                    setProductsProperties((JSONArray) eventProperties.get("products"),event);
                                 }
                                 if (eventProperties.containsKey("currency")) {
                                     event.setCurrency((String) eventProperties.get("currency"));
@@ -152,37 +129,13 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                             }
 
                             if (eventName.equals("add to wishlist")) {
-                                if (eventProperties.containsKey("name")) {
-                                    event.setName((String) eventProperties.get("name"));
-                                    eventProperties.remove("name");
-                                }
-                                if (eventProperties.containsKey("product_id")) {
-                                    if( eventProperties.get("product_id") instanceof Integer) {
-                                        event.setContentId(Integer.toString((Integer) eventProperties.get("product_id")));
-                                    }
-                                    else {
-                                        event.setContentId((String) eventProperties.get("product_id"));
-                                    }
-                                    eventProperties.remove("product_id");
-                                }
+                                eventProperties = setProductProperties(eventProperties, event);
                             }
 
                             if (eventName.equals("product added")) {
-                                if (eventProperties.containsKey("name")) {
-                                    event.setName((String) eventProperties.get("name"));
-                                    eventProperties.remove("name");
-                                }
-                                if (eventProperties.containsKey("product_id")) {
-                                    if( eventProperties.get("product_id") instanceof Integer) {
-                                        event.setContentId(Integer.toString((Integer) eventProperties.get("product_id")));
-                                    }
-                                    else {
-                                        event.setContentId((String) eventProperties.get("product_id"));
-                                    }
-                                    eventProperties.remove("product_id");
-                                }
+                                eventProperties = setProductProperties(eventProperties, event);
                                 if (eventProperties.containsKey("quantity")) {
-                                    if( eventProperties.get("quantity") instanceof String) {
+                                    if( isString(eventProperties.get("quantity"))) {
                                         event.setQuantity(Double.parseDouble((String) eventProperties.get("quantity")));
                                     }
                                     else {
@@ -213,13 +166,11 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                         event = new Tracker.Event(eventName);
                     }
 
-                    // Getting the Custom events
+                    // Getting the Custom Properties
                     if (eventProperties != null && eventProperties.size() != 0) {
                         event.addCustom(new JSONObject(eventProperties));
                     }
-
                     Tracker.sendEvent(event);
-
                     break;
                 case MessageType.SCREEN:
 
@@ -272,25 +223,72 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
         return 0;
     }
 
-    // If event.properties contains key of Products then below method is called.
-    private String getProductProperties(JSONArray products, String property) throws JSONException {
-        ArrayList<String> productProperties = new ArrayList<>();
+    // If eventProperties contains key of Products
+    private void setProductsProperties(JSONArray products, Tracker.Event event) throws JSONException {
+        ArrayList<String> productName = new ArrayList<>();
+        ArrayList<String> product_id = new ArrayList<>();
         for(int i = 0; i < products.length(); i++) {
             JSONObject product = (JSONObject) products.get(i);
-            if(product.has(property)){
-                if(product.get(property) instanceof Integer) {
-                    productProperties.add( Integer.toString((Integer) product.get(property)));
+            if (product.has("name")) {
+                productName.add((String) product.get(("name")));
+            }
+            if (product.has("product_id")) {
+                if (isInteger(product.get("product_id"))) {
+                    product_id.add(Integer.toString((Integer) product.get("product_id")));
                 }
                 else {
-                    productProperties.add((String) product.get(property));
+                    product_id.add((String) product.get("product_id"));
+                }
+                continue;
+            }
+            if (product.has("productId")) {
+                if (isInteger(product.get("productId"))) {
+                    product_id.add(Integer.toString((Integer) product.get("productId")));
+                }
+                else {
+                    product_id.add((String) product.get("productId"));
                 }
             }
         }
+        event.setName(productName.toString());
+        event.setContentId(product_id.toString());
+    }
 
-        if( productProperties == null || productProperties.size() == 0)
-            return null;
+    // If eventProperties contains key of 'name', 'product_id' or 'productId'
+    private Map<String, Object> setProductProperties (Map<String, Object> eventProperties, Tracker.Event event){
+        if (eventProperties.containsKey("name")) {
+            event.setName((String) eventProperties.get("name"));
+            eventProperties.remove("name");
+        }
+        if (eventProperties.containsKey("product_id")) {
+            if( isInteger(eventProperties.get("product_id")) ) {
+                event.setContentId(Integer.toString((Integer) eventProperties.get("product_id")));
+            }
+            else {
+                event.setContentId((String) eventProperties.get("product_id"));
+            }
+            eventProperties.remove("product_id");
+        }
+        if (eventProperties.containsKey("productId")) {
+            if( isInteger(eventProperties.get("productId")) ) {
+                event.setContentId(Integer.toString((Integer) eventProperties.get("productId")));
+            }
+            else {
+                event.setContentId((String) eventProperties.get("productId"));
+            }
+            eventProperties.remove("productId");
+        }
+        return eventProperties;
+    }
 
-        return productProperties.toString();
+    // To check if Object is Integer or not
+    private boolean isInteger(Object value){
+        return value instanceof Integer;
+    }
+
+    // To check if Object is String or not
+    private boolean isString(Object value){
+        return value instanceof String;
     }
 
     public static void registeredForPushNotificationsWithFCMToken(String token){
