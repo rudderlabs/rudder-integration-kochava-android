@@ -31,7 +31,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
     private static final Map<String, Object> eventsMapping = new HashMap<String, Object>(){
         {
             put("product added", Tracker.EVENT_TYPE_ADD_TO_CART);
-            put("add to wishlist", Tracker.EVENT_TYPE_ADD_TO_WISH_LIST);
+            put("product added to wishlist", Tracker.EVENT_TYPE_ADD_TO_WISH_LIST);
             put("checkout started", Tracker.EVENT_TYPE_CHECKOUT_START);
             put("order completed", Tracker.EVENT_TYPE_PURCHASE);
             put("product reviewed", Tracker.EVENT_TYPE_RATING);
@@ -123,7 +123,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                                 }
                             }
 
-                            if (eventName.equals("add to wishlist")) {
+                            if (eventName.equals("product added to wishlist")) {
                                 eventProperties = setProductProperties(eventProperties, event);
                             }
 

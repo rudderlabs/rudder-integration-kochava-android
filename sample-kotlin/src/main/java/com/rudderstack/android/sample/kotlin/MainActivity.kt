@@ -74,7 +74,7 @@ class MainActivity : AppCompatActivity() {
 //                RudderProperty()
 //                        .putValue("currency", "USD"))
 //
-//        MainApplication.rudderClient.track("add to wishlist",
+//        MainApplication.rudderClient.track("Product Added to Wishlist",
 //                RudderProperty()
 //                        .putValue("name","Gold")
 //                        .putValue("product_id",678))
