@@ -104,12 +104,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                                     setProductsProperties((JSONArray) eventProperties.get("products"), event);
                                 }
                                 if (eventProperties.containsKey("revenue")) {
-                                    if( isString(eventProperties.get("revenue"))) {
-                                        event.setPrice(Double.parseDouble((String) eventProperties.get("revenue")));
-                                    }
-                                    else {
-                                        event.setPrice(getRevenue(eventProperties.get("revenue")));
-                                    }
+                                    event.setPrice(getDouble(eventProperties.get("revenue")));
                                     eventProperties.remove("revenue");
                                 }
                                 if (eventProperties.containsKey("currency")) {
@@ -120,7 +115,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
 
                             if (eventName.equals("checkout started")) {
                                 if(eventProperties.containsKey("products")){
-                                    setProductsProperties((JSONArray) eventProperties.get("products"),event);
+                                    setProductsProperties((JSONArray) eventProperties.get("products"), event);
                                 }
                                 if (eventProperties.containsKey("currency")) {
                                     event.setCurrency((String) eventProperties.get("currency"));
@@ -135,19 +130,14 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                             if (eventName.equals("product added")) {
                                 eventProperties = setProductProperties(eventProperties, event);
                                 if (eventProperties.containsKey("quantity")) {
-                                    if( isString(eventProperties.get("quantity"))) {
-                                        event.setQuantity(Double.parseDouble((String) eventProperties.get("quantity")));
-                                    }
-                                    else {
-                                        event.setQuantity(getQuantity(eventProperties.get("quantity")));
-                                    }
+                                    event.setQuantity(getDouble(eventProperties.get("quantity")));
                                     eventProperties.remove("quantity");
                                 }
                             }
 
                             if (eventName.equals("product reviewed")) {
                                 if (eventProperties.containsKey("rating")) {
-                                    event.setRatingValue(Double.parseDouble ((String)eventProperties.get("rating")));
+                                    event.setRatingValue(getDouble(eventProperties.get("rating")));
                                     eventProperties.remove("rating");
                                 }
                             }
@@ -207,20 +197,26 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
         }
     }
 
-    private double getRevenue(Object val) {
-        if (val != null) {
-            String str = String.valueOf(val);
-            return Double.parseDouble(str);
+    // To get double type variable
+    private double getDouble(Object val) {
+        if (val instanceof String) {
+            return Double.parseDouble((String) val);
         }
-        return 0;
+        else if (val instanceof Integer) {
+           return Double.valueOf((Integer) val);
+        }
+        return (Double) val;
     }
 
-    private double getQuantity(Object val) {
-        if (val != null) {
-            String str = String.valueOf(val);
-            return Double.parseDouble(str);
+    // To get String type variable
+    private String getString(Object val) {
+        if(val instanceof Integer) {
+            return Integer.toString((Integer) val);
         }
-        return 0;
+        else if(val instanceof Double) {
+            return Double.toString((Double) val);
+        }
+        return (String) val;
     }
 
     // If eventProperties contains key of Products
@@ -233,21 +229,11 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                 productName.add((String) product.get(("name")));
             }
             if (product.has("product_id")) {
-                if (isInteger(product.get("product_id"))) {
-                    product_id.add(Integer.toString((Integer) product.get("product_id")));
-                }
-                else {
-                    product_id.add((String) product.get("product_id"));
-                }
+                product_id.add(getString(product.get("product_id")));
                 continue;
             }
             if (product.has("productId")) {
-                if (isInteger(product.get("productId"))) {
-                    product_id.add(Integer.toString((Integer) product.get("productId")));
-                }
-                else {
-                    product_id.add((String) product.get("productId"));
-                }
+                product_id.add(getString(product.get("productId")));
             }
         }
         event.setName(productName.toString());
@@ -260,35 +246,16 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
             event.setName((String) eventProperties.get("name"));
             eventProperties.remove("name");
         }
+
         if (eventProperties.containsKey("product_id")) {
-            if( isInteger(eventProperties.get("product_id")) ) {
-                event.setContentId(Integer.toString((Integer) eventProperties.get("product_id")));
-            }
-            else {
-                event.setContentId((String) eventProperties.get("product_id"));
-            }
+            event.setContentId(getString(eventProperties.get("product_id")));
             eventProperties.remove("product_id");
         }
-        if (eventProperties.containsKey("productId")) {
-            if( isInteger(eventProperties.get("productId")) ) {
-                event.setContentId(Integer.toString((Integer) eventProperties.get("productId")));
-            }
-            else {
-                event.setContentId((String) eventProperties.get("productId"));
-            }
+        else if (eventProperties.containsKey("productId")) {
+            event.setContentId(getString(eventProperties.get("productId")));
             eventProperties.remove("productId");
         }
         return eventProperties;
-    }
-
-    // To check if Object is Integer or not
-    private boolean isInteger(Object value){
-        return value instanceof Integer;
-    }
-
-    // To check if Object is String or not
-    private boolean isString(Object value){
-        return value instanceof String;
     }
 
     public static void registeredForPushNotificationsWithFCMToken(String token){
