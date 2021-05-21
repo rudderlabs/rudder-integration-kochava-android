@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.rudderlabs.android.sample.kotlin.R
 import com.rudderstack.android.sdk.core.RudderProperty
-import org.json.JSONArray
 import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
@@ -12,26 +11,27 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+
 //        Standard Events
-        val answer1 = JSONObject("""{"name":"test name", "age":25}""")
-        val map= mapOf("product_id" to "pro1", "name" to "monopoly", "price" to 1000)
-        val map1= mapOf("product_id" to "pro2", "name" to "games", "price" to 2000)
-        val list= listOf(map, map1);
-        MainApplication.rudderClient.track("Order Completed",
-                RudderProperty()
-                        .putValue("order_id", "order123")
-                        .putValue("product_id","pro123")
-                        .putValue("checkout_id", "check123")
-                        .putValue("name", "test")
-                        .putValue("custom_1", "string")
-                        .putValue("custom_2", 1230)
-                        .putValue("custom_3", true)
-                        .putValue("custom_4", answer1)
-                        .putValue("revenue", 8.99)
-                        .putValue("quantity", 2)
-                        .putValue("currency", "USD")
-                        .putValue("products", list)
-        )
+//        val answer1 = JSONObject("""{"name":"test name", "age":25}""")
+//        val map= mapOf("product_id" to "pro1", "name" to "monopoly", "price" to 1000)
+//        val map1= mapOf("product_id" to "pro2", "name" to "games", "price" to 2000)
+//        val list= listOf(map, map1);
+//        MainApplication.rudderClient.track("Order Completed",
+//                RudderProperty()
+//                        .putValue("order_id", "order123")
+//                        .putValue("product_id","pro123")
+//                        .putValue("checkout_id", "check123")
+//                        .putValue("name", "test")
+//                        .putValue("custom_1", "string")
+//                        .putValue("custom_2", 1230)
+//                        .putValue("custom_3", true)
+//                        .putValue("custom_4", answer1)
+//                        .putValue("revenue", 8.99)
+//                        .putValue("quantity", 2)
+//                        .putValue("currency", "USD")
+//                        .putValue("products", list)
+//        )
 //
 //        MainApplication.rudderClient.track("Checkout Started",
 //                RudderProperty()
@@ -88,7 +88,7 @@ class MainActivity : AppCompatActivity() {
 //        val product1 = JSONObject()
 //        product1.put("sku", "G-32")
 //        product1.put("productId", 123)
-//        //product1.put("name", "Monopoly")
+//        product1.put("name", "Monopoly")
 //        product1.put("price", 14)
 //        product1.put("quantity", 1)
 //        productsArray.put(product1)
@@ -132,6 +132,13 @@ class MainActivity : AppCompatActivity() {
 //        Custom Track Events:
 
 
+//        MainApplication.rudderClient.track("Track in MainActivity",
+//                RudderProperty().putValue("val", Date()))
+//        Tracker.sendEvent(Tracker.Event("Sample Kotlin Date")
+//                .addCustom("details", "eve 4")
+//                .addCustom("value", Date())
+//        )
+//
 //        val array1 = arrayOf(1,2,3,4)
 //        MainApplication.rudderClient.track("Track 6",
 //                RudderProperty().putValue("val",array1))
@@ -141,17 +148,17 @@ class MainActivity : AppCompatActivity() {
 //                RudderProperty()
 //                        .putValue("Colour","Black")
 //                        .putValue("Weight","25lb"));
-
-
+//
+//
 //        Screen Call:
 //        MainApplication.rudderClient.screen("Sample Screen Name",
 //            RudderProperty()
 //                .putValue("prop_key","prop_value"));
-
-
+//
+//
 //        TC:14 Screen call with name
 //        MainApplication.rudderClient.screen("Flipkart Page");
-
+//
 //        TC:15 Screen call with name, category and property
 //        MainApplication.rudderClient.screen(
 //            "Myntra_home",

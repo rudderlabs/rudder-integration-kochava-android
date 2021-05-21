@@ -19,10 +19,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Date;
+import java.util.TimeZone;
 
 
 public class KochavaIntegrationFactory extends RudderIntegration<Void> {
@@ -157,6 +160,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
 
                     // Getting the Custom Properties
                     if (eventProperties != null && eventProperties.size() != 0) {
+                        eventProperties = dateToISOString(eventProperties);
                         event.addCustom(new JSONObject(eventProperties));
                     }
                     Tracker.sendEvent(event);
@@ -276,9 +280,20 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
         return eventProperties;
     }
 
-    public static void registeredForPushNotificationsWithFCMToken(String token){
-        Tracker.addPushToken(token);
+    // Converting the Date into ISO format
+    private Map<String, Object> dateToISOString(Map<String, Object> eventProperties) {
+        for (Map.Entry entry : eventProperties.entrySet()) {
+            if (entry.getValue() instanceof Date) {
+                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+                formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+                eventProperties.put((String) entry.getKey(), formatter.format(entry.getValue()));
+            }
+        }
+        return eventProperties;
     }
 
-
+    public static void registeredForPushNotificationsWithFCMToken(String token){
+        Tracker.addPushToken(token);
+        System.out.println("Token is pushed: " + token);
+    }
 }
