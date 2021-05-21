@@ -27,9 +27,9 @@ implementation 'com.google.firebase:firebase-messaging:21.1.0'
 ```groovy
 val rudderClient = RudderClient.getInstance(
     this,
-    <YOUR_WRITE_KEY>,
+    WRITE_KEY,
     RudderConfig.Builder()
-        .withDataPlaneUrl(<YOUR_DATA_PLANE_URL>)
+        .withDataPlaneUrl(DATA_PLANE_URL)
         .withFactory(KochavaIntegrationFactory.FACTORY)
         .build()
 )
