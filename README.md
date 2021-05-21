@@ -15,7 +15,11 @@ implementation 'com.rudderstack.android.sdk:core:1.+'
 implementation 'com.rudderstack.android.integration:kochava:1.0.0'
 implementation 'com.google.code.gson:gson:2.8.6'
 
-// Kochava dependencies here
+// Kochava
+implementation 'com.kochava.base:tracker:3.10.0'
+
+// For using Push Notification
+implementation 'com.google.firebase:firebase-messaging:21.1.0'
 ```
 
 5. Finally change the initialization of your `RudderClient` in your `Application` class:
