@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.rudderlabs.android.sample.kotlin.R
 import com.rudderstack.android.sdk.core.RudderProperty
 import org.json.JSONObject
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -151,6 +152,10 @@ class MainActivity : AppCompatActivity() {
 //
 //
 //        Screen Call:
+//
+//        MainApplication.rudderClient.screen("Screen 1",
+//            RudderProperty().putValue("val", Date()))
+//
 //        MainApplication.rudderClient.screen("Sample Screen Name",
 //            RudderProperty()
 //                .putValue("prop_key","prop_value"));

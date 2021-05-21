@@ -171,7 +171,8 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                     if(screenName == null)
                         return;
                     if(element.getProperties() != null && element.getProperties().size() != 0) {
-                        Tracker.sendEvent("screen view " + screenName, new Gson().toJson(element.getProperties()));
+                        eventProperties = dateToISOString(element.getProperties());
+                        Tracker.sendEvent("screen view " + screenName, new Gson().toJson(eventProperties));
                         return;
                     }
                     Tracker.sendEvent(new Tracker.Event("screen view " + screenName));
