@@ -1,12 +1,13 @@
 package com.rudderstack.android.integrations.kochava;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import com.kochava.base.Tracker;
+import com.kochava.base.Tracker.Configuration;
 import com.rudderstack.android.sdk.core.MessageType;
 import com.rudderstack.android.sdk.core.RudderClient;
 import com.rudderstack.android.sdk.core.RudderConfig;
@@ -14,15 +15,13 @@ import com.rudderstack.android.sdk.core.RudderIntegration;
 import com.rudderstack.android.sdk.core.RudderLogger;
 import com.rudderstack.android.sdk.core.RudderMessage;
 
-import com.kochava.base.Tracker;
-import com.kochava.base.Tracker.Configuration;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -101,7 +100,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
 
                             if (eventName.equals("order completed")) {
                                 if(eventProperties.containsKey("products")){
-                                    setProductsProperties((JSONArray) eventProperties.get("products"), event);
+                                    setProductsProperties(getJSONArray(eventProperties.get("products")), event);
                                 }
                                 if (eventProperties.containsKey("revenue")) {
                                     event.setPrice(getDouble(eventProperties.get("revenue")));
@@ -115,7 +114,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
 
                             if (eventName.equals("checkout started")) {
                                 if(eventProperties.containsKey("products")){
-                                    setProductsProperties((JSONArray) eventProperties.get("products"), event);
+                                    setProductsProperties(getJSONArray(eventProperties.get("products")), event);
                                 }
                                 if (eventProperties.containsKey("currency")) {
                                     event.setCurrency((String) eventProperties.get("currency"));
@@ -162,18 +161,18 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                     }
                     Tracker.sendEvent(event);
                     break;
-                case MessageType.SCREEN:
 
+                case MessageType.SCREEN:
                     String screenName = element.getEventName();
                     if(screenName == null)
                         return;
-
                     if(element.getProperties() != null && element.getProperties().size() != 0) {
                         Tracker.sendEvent("screen view " + screenName, new Gson().toJson(element.getProperties()));
                         return;
                     }
                     Tracker.sendEvent(new Tracker.Event("screen view " + screenName));
                     break;
+
                 default:
                     RudderLogger.logWarn("MessageType is not specified or supported");
                     break;
@@ -219,6 +218,21 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
         return (String) val;
     }
 
+    @NonNull
+    private JSONArray getJSONArray(@Nullable Object object) {
+        if (object instanceof JSONArray) {
+            return (JSONArray) object;
+        }
+        if(object instanceof List){
+            ArrayList<Object> arrayList = new ArrayList<>();
+            for(Object element: (List) object ) {
+                arrayList.add(element);
+            }
+            return new JSONArray(arrayList);
+        }
+        return new JSONArray((ArrayList) object);
+    }
+
     // If eventProperties contains key of Products
     private void setProductsProperties(JSONArray products, Tracker.Event event) throws JSONException {
         ArrayList<String> productName = new ArrayList<>();
@@ -236,8 +250,12 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                 product_id.add(getString(product.get("productId")));
             }
         }
-        event.setName(productName.toString());
-        event.setContentId(product_id.toString());
+        if (productName.size() != 0) {
+            event.setName(productName.toString());
+        }
+        if (product_id.size() != 0) {
+            event.setContentId(product_id.toString());
+        }
     }
 
     // If eventProperties contains key of 'name', 'product_id' or 'productId'
