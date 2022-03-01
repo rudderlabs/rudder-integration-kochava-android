@@ -10,7 +10,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 30
         versionCode 1
-        versionName "1.0.0"
+        versionName "1.0.1"
     }
 
     buildTypes {
@@ -28,12 +28,12 @@ dependencies {
     implementation 'androidx.annotation:annotation:1.1.0'
     implementation 'androidx.appcompat:appcompat:1.2.0'
     // rudder core sdk
-    compileOnly 'com.rudderstack.android.sdk:core:1.+'
+    implementation 'com.rudderstack.android.sdk:core:[1.0,2.0)'
     // GSON dependency
     implementation 'com.google.code.gson:gson:2.8.6'
 
     //Kochava
-    implementation 'com.kochava.base:tracker:3.10.0'
+    implementation 'com.kochava.base:tracker:3.10.1'
 }
 
 //apply from: './maven.gradle'

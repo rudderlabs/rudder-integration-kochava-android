@@ -90,7 +90,11 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                     if(eventName == null)
                         return;
 
-                    Map<String, Object> eventProperties = element.getProperties();
+
+                    JSONObject eventProperties = null;
+                    if (element.getProperties() != null && element.getProperties().size() != 0) {
+                        eventProperties = new JSONObject(element.getProperties());
+                    }
                     Tracker.Event event = null;
 
                     //Standard Events
@@ -99,53 +103,55 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                         eventName = eventName.toLowerCase();
                         event = new Tracker.Event((Integer) eventsMapping.get(eventName));
 
-                        if (eventProperties != null && eventProperties.size() != 0) {
+                        if (eventProperties != null && eventProperties.length() != 0) {
 
                             if (eventName.equals("order completed")) {
-                                if(eventProperties.containsKey("products")){
+                                if(eventProperties.has("products")){
                                     setProductsProperties(getJSONArray(eventProperties.get("products")), event);
+                                    eventProperties.remove("products");
                                 }
-                                if (eventProperties.containsKey("revenue")) {
+                                if (eventProperties.has("revenue")) {
                                     event.setPrice(getDouble(eventProperties.get("revenue")));
                                     eventProperties.remove("revenue");
                                 }
-                                if (eventProperties.containsKey("currency")) {
+                                if (eventProperties.has("currency")) {
                                     event.setCurrency((String) eventProperties.get("currency"));
                                     eventProperties.remove("currency");
                                 }
                             }
 
                             if (eventName.equals("checkout started")) {
-                                if(eventProperties.containsKey("products")){
+                                if(eventProperties.has("products")){
                                     setProductsProperties(getJSONArray(eventProperties.get("products")), event);
+                                    eventProperties.remove("products");
                                 }
-                                if (eventProperties.containsKey("currency")) {
+                                if (eventProperties.has("currency")) {
                                     event.setCurrency((String) eventProperties.get("currency"));
                                     eventProperties.remove("currency");
                                 }
                             }
 
                             if (eventName.equals("product added to wishlist")) {
-                                eventProperties = setProductProperties(eventProperties, event);
+                                setProductProperties(eventProperties, event);
                             }
 
                             if (eventName.equals("product added")) {
-                                eventProperties = setProductProperties(eventProperties, event);
-                                if (eventProperties.containsKey("quantity")) {
+                                setProductProperties(eventProperties, event);
+                                if (eventProperties.has("quantity")) {
                                     event.setQuantity(getDouble(eventProperties.get("quantity")));
                                     eventProperties.remove("quantity");
                                 }
                             }
 
                             if (eventName.equals("product reviewed")) {
-                                if (eventProperties.containsKey("rating")) {
+                                if (eventProperties.has("rating")) {
                                     event.setRatingValue(getDouble(eventProperties.get("rating")));
                                     eventProperties.remove("rating");
                                 }
                             }
 
                             if (eventName.equals("products searched")) {
-                                if (eventProperties.containsKey("query")) {
+                                if (eventProperties.has("query")) {
                                     event.setUri((String) eventProperties.get("query"));
                                     eventProperties.remove("query");
                                 }
@@ -159,9 +165,9 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                     }
 
                     // Getting the Custom Properties
-                    if (eventProperties != null && eventProperties.size() != 0) {
-                        eventProperties = dateToISOString(eventProperties);
-                        event.addCustom(new JSONObject(eventProperties));
+                    if (eventProperties != null && eventProperties.length() != 0) {
+                        dateToISOString(eventProperties, element.getProperties());
+                        event.addCustom(eventProperties);
                     }
                     Tracker.sendEvent(event);
                     break;
@@ -170,9 +176,13 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                     String screenName = element.getEventName();
                     if(screenName == null)
                         return;
-                    if(element.getProperties() != null && element.getProperties().size() != 0) {
-                        eventProperties = dateToISOString(element.getProperties());
-                        Tracker.sendEvent("screen view " + screenName, new Gson().toJson(eventProperties));
+                    JSONObject screenProperties = null;
+                    if (element.getProperties() != null && element.getProperties().size() != 0) {
+                        screenProperties = new JSONObject(element.getProperties());
+                    }
+                    if(screenProperties != null && screenProperties.length() != 0) {
+                        dateToISOString(screenProperties, element.getProperties());
+                        Tracker.sendEvent("screen view " + screenName, String.valueOf(screenProperties));
                         return;
                     }
                     Tracker.sendEvent(new Tracker.Event("screen view " + screenName));
@@ -228,6 +238,9 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
         if (object instanceof JSONArray) {
             return (JSONArray) object;
         }
+        if (object instanceof JSONObject) {
+            return new JSONArray().put(object);
+        }
         if(object instanceof List){
             ArrayList<Object> arrayList = new ArrayList<>();
             for(Object element: (List) object ) {
@@ -264,33 +277,40 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
     }
 
     // If eventProperties contains key of 'name', 'product_id' or 'productId'
-    private Map<String, Object> setProductProperties (Map<String, Object> eventProperties, Tracker.Event event){
-        if (eventProperties.containsKey("name")) {
-            event.setName((String) eventProperties.get("name"));
-            eventProperties.remove("name");
-        }
+    private void setProductProperties (JSONObject eventProperties, Tracker.Event event){
+        try {
+            if (eventProperties.has("name")) {
+                event.setName((String) eventProperties.get("name"));
+                eventProperties.remove("name");
+            }
 
-        if (eventProperties.containsKey("product_id")) {
-            event.setContentId(getString(eventProperties.get("product_id")));
-            eventProperties.remove("product_id");
+            if (eventProperties.has("product_id")) {
+                event.setContentId(getString(eventProperties.get("product_id")));
+                eventProperties.remove("product_id");
+            } else if (eventProperties.has("productId")) {
+                event.setContentId(getString(eventProperties.get("productId")));
+                eventProperties.remove("productId");
+            }
+        } catch (JSONException e) {
+            RudderLogger.logError("Error occurred at setProductProperties " + e);
         }
-        else if (eventProperties.containsKey("productId")) {
-            event.setContentId(getString(eventProperties.get("productId")));
-            eventProperties.remove("productId");
-        }
-        return eventProperties;
     }
 
     // Converting the Date into ISO format
-    private Map<String, Object> dateToISOString(Map<String, Object> eventProperties) {
-        for (Map.Entry entry : eventProperties.entrySet()) {
-            if (entry.getValue() instanceof Date) {
-                SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-                formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-                eventProperties.put((String) entry.getKey(), formatter.format(entry.getValue()));
+    private void dateToISOString(JSONObject eventProperties, Map<String, Object> mapTypeProperties) {
+        for (Map.Entry entry : mapTypeProperties.entrySet()) {
+            try {
+                if (entry.getValue() instanceof Date)
+                    if (eventProperties.has((String) entry.getKey())) {
+                        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+                        formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+                        // Updating date to the JSONObject variable.
+                        eventProperties.put((String) entry.getKey(), formatter.format(entry.getValue()));
+                    }
+            } catch (JSONException e) {
+                RudderLogger.logError("Error occurred at dateToISOString method " + e);
             }
         }
-        return eventProperties;
     }
 
     public static void registeredForPushNotificationsWithFCMToken(String token){

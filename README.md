@@ -11,12 +11,12 @@ More information on RudderStack can be found [here](https://github.com/rudderlab
 2. Add the following `dependencies` to your `app/build.gradle` file as shown:
 
 ```groovy
-implementation 'com.rudderstack.android.sdk:core:1.+'
-implementation 'com.rudderstack.android.integration:kochava:1.0.0'
+implementation 'com.rudderstack.android.sdk:core:[1.0,2.0)'
+implementation 'com.rudderstack.android.integration:kochava:1.0.1'
 implementation 'com.google.code.gson:gson:2.8.6'
 
 // Kochava
-implementation 'com.kochava.base:tracker:3.10.0'
+implementation 'com.kochava.base:tracker:3.10.1'
 
 // For using Push Notification
 implementation 'com.google.firebase:firebase-messaging:21.1.0'
