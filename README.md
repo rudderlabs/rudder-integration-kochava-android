@@ -11,7 +11,7 @@ More information on RudderStack can be found [here](https://github.com/rudderlab
 2. Add the following `dependencies` to your `app/build.gradle` file as shown:
 
 ```groovy
-implementation 'com.rudderstack.android.sdk:core:[1.0,)'
+implementation 'com.rudderstack.android.sdk:core:[1.0,2.0)'
 implementation 'com.rudderstack.android.integration:kochava:1.0.1'
 implementation 'com.google.code.gson:gson:2.8.6'
 
