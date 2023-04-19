@@ -17,7 +17,7 @@ jobs:
         with:
           workflow_id: ${{ github.event.workflow.id }}
 
-  facebook-test:
+  kochava-test:
     needs: cancel_previous
     runs-on: ubuntu-latest
 
