@@ -3,14 +3,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "29.0.3"
+    compileSdkVersion 32
 
     defaultConfig {
-        minSdkVersion 14
-        targetSdkVersion 30
-        versionCode 1
-        versionName "1.0.1"
+        minSdkVersion 19
+        targetSdkVersion 32
+        buildConfigField("String", "VERSION_NAME", "\"${VERSION_NAME}\"")
     }
 
     buildTypes {
@@ -41,4 +39,6 @@ ext {
     PUBLISH_VERSION = '1.0.1'
     PUBLISH_ARTIFACT_ID = 'kochava'
 }
-apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"
+
+apply from: rootProject.file('gradle/mvn-publish.gradle')
+apply from: rootProject.file('gradle/codecov.gradle')
