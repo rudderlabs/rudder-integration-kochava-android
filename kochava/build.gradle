@@ -23,15 +23,18 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.annotation:annotation:1.1.0'
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    // rudder core sdk
-    implementation 'com.rudderstack.android.sdk:core:[1.0,2.0)'
+    implementation 'androidx.annotation:annotation:1.6.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     // GSON dependency
-    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'com.google.code.gson:gson:2.8.9'
 
-    //Kochava
-    implementation 'com.kochava.base:tracker:3.10.1'
+    // RudderStack SDK
+    compileOnly 'com.rudderstack.android.sdk:core:[1.12,2.0)'
+
+    //Kochava SDK
+    implementation 'com.kochava.tracker:tracker:[4.3,5.0)'
+    implementation 'com.kochava.tracker:events:[4.3,5.0)'
+    implementation 'com.kochava.tracker:engagement:[4.3,5.0)'
 }
 
 ext {
