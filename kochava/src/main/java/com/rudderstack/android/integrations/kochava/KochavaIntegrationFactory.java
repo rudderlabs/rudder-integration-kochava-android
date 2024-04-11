@@ -6,8 +6,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.gson.Gson;
-import com.kochava.base.Tracker;
-import com.kochava.base.Tracker.Configuration;
+import com.kochava.tracker.Tracker;
+import com.kochava.tracker.engagement.Engagement;
+import com.kochava.tracker.events.Event;
+import com.kochava.tracker.events.EventApi;
+import com.kochava.tracker.events.EventType;
 import com.rudderstack.android.sdk.core.MessageType;
 import com.rudderstack.android.sdk.core.RudderClient;
 import com.rudderstack.android.sdk.core.RudderConfig;
@@ -22,6 +25,7 @@ import org.json.JSONObject;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Date;
@@ -30,21 +34,22 @@ import java.util.TimeZone;
 
 public class KochavaIntegrationFactory extends RudderIntegration<Void> {
     private static final String KOCHAVA_KEY = "Kochava";
-    private static final Map<String, Object> eventsMapping = new HashMap<String, Object>(){
-        {
-            put("product added", Tracker.EVENT_TYPE_ADD_TO_CART);
-            put("product added to wishlist", Tracker.EVENT_TYPE_ADD_TO_WISH_LIST);
-            put("checkout started", Tracker.EVENT_TYPE_CHECKOUT_START);
-            put("order completed", Tracker.EVENT_TYPE_PURCHASE);
-            put("product reviewed", Tracker.EVENT_TYPE_RATING);
-            put("products searched", Tracker.EVENT_TYPE_SEARCH);
-        }
-    };
+    private static final Map<String, EventType> eventsMapping = new HashMap<>();
+
+    static {
+        eventsMapping.put("product added", EventType.ADD_TO_CART);
+        eventsMapping.put("product added to wishlist", EventType.ADD_TO_WISH_LIST);
+        eventsMapping.put("checkout started", EventType.CHECKOUT_START);
+        eventsMapping.put("order completed", EventType.PURCHASE);
+        eventsMapping.put("product reviewed", EventType.RATING);
+        eventsMapping.put("products searched", EventType.SEARCH);
+        eventsMapping.put("product viewed", EventType.VIEW);
+    }
 
     public static Factory FACTORY = new Factory() {
         @Override
         public RudderIntegration<?> create(Object settings, RudderClient client, RudderConfig rudderConfig) {
-            return new KochavaIntegrationFactory(settings, rudderConfig);
+            return new KochavaIntegrationFactory(settings);
         }
 
         @Override
@@ -53,7 +58,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
         }
     };
 
-    private KochavaIntegrationFactory(@NonNull Object config, RudderConfig rudderConfig) {
+    private KochavaIntegrationFactory(@NonNull Object config) {
         if (RudderClient.getApplication() == null) {
             RudderLogger.logError("Application is null. Aborting Kochava initialization.");
             return;
@@ -72,10 +77,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
         }
 
         // Start the Kochava Tracker
-        Tracker.configure(new Configuration(RudderClient.getApplication())
-                .setAppGuid(destinationConfig.apiKey)
-                .setLogLevel(rudderConfig.getLogLevel())
-        );
+        Tracker.getInstance().startWithAppGuid(RudderClient.getApplication(), destinationConfig.apiKey);
         RudderLogger.logInfo("Initialized Kochava SDK");
     }
 
@@ -83,93 +85,84 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
         String type = element.getType();
         if (type != null) {
             switch (type) {
-
                 case MessageType.TRACK:
-
                     String eventName = element.getEventName();
                     if(eventName == null)
                         return;
-
 
                     JSONObject eventProperties = null;
                     if (element.getProperties() != null && element.getProperties().size() != 0) {
                         eventProperties = new JSONObject(element.getProperties());
                     }
-                    Tracker.Event event = null;
-
+                    EventApi trackEvent = null;
                     //Standard Events
                     if(eventsMapping.containsKey(eventName.toLowerCase())) {
-
                         eventName = eventName.toLowerCase();
-                        event = new Tracker.Event((Integer) eventsMapping.get(eventName));
+                        trackEvent = Event.buildWithEventType(eventsMapping.get(eventName));
 
                         if (eventProperties != null && eventProperties.length() != 0) {
-
                             if (eventName.equals("order completed")) {
                                 if(eventProperties.has("products")){
-                                    setProductsProperties(getJSONArray(eventProperties.get("products")), event);
+                                    setProductsProperties(getJSONArray(eventProperties.get("products")), trackEvent);
                                     eventProperties.remove("products");
                                 }
                                 if (eventProperties.has("revenue")) {
-                                    event.setPrice(getDouble(eventProperties.get("revenue")));
+                                    trackEvent.setPrice(getDouble(eventProperties.get("revenue")));
                                     eventProperties.remove("revenue");
                                 }
                                 if (eventProperties.has("currency")) {
-                                    event.setCurrency((String) eventProperties.get("currency"));
+                                    trackEvent.setCurrency((String) eventProperties.get("currency"));
                                     eventProperties.remove("currency");
                                 }
                             }
 
                             if (eventName.equals("checkout started")) {
                                 if(eventProperties.has("products")){
-                                    setProductsProperties(getJSONArray(eventProperties.get("products")), event);
+                                    setProductsProperties(getJSONArray(eventProperties.get("products")), trackEvent);
                                     eventProperties.remove("products");
                                 }
                                 if (eventProperties.has("currency")) {
-                                    event.setCurrency((String) eventProperties.get("currency"));
+                                    trackEvent.setCurrency((String) eventProperties.get("currency"));
                                     eventProperties.remove("currency");
                                 }
                             }
 
                             if (eventName.equals("product added to wishlist")) {
-                                setProductProperties(eventProperties, event);
+                                setProductProperties(eventProperties, trackEvent);
                             }
 
                             if (eventName.equals("product added")) {
-                                setProductProperties(eventProperties, event);
+                                setProductProperties(eventProperties, trackEvent);
                                 if (eventProperties.has("quantity")) {
-                                    event.setQuantity(getDouble(eventProperties.get("quantity")));
+                                    trackEvent.setQuantity(getDouble(eventProperties.get("quantity")));
                                     eventProperties.remove("quantity");
                                 }
                             }
 
                             if (eventName.equals("product reviewed")) {
                                 if (eventProperties.has("rating")) {
-                                    event.setRatingValue(getDouble(eventProperties.get("rating")));
+                                    trackEvent.setRatingValue(getDouble(eventProperties.get("rating")));
                                     eventProperties.remove("rating");
                                 }
                             }
 
                             if (eventName.equals("products searched")) {
                                 if (eventProperties.has("query")) {
-                                    event.setUri((String) eventProperties.get("query"));
+                                    trackEvent.setUri((String) eventProperties.get("query"));
                                     eventProperties.remove("query");
                                 }
                             }
                         }
-                    }
-
-                    // Custom Events
-                    else {
-                        event = new Tracker.Event(eventName);
+                    } else { // Custom Events
+                        trackEvent = Event.buildWithEventName(eventName);
                     }
 
                     // Getting the Custom Properties
                     if (eventProperties != null && eventProperties.length() != 0) {
                         dateToISOString(eventProperties, element.getProperties());
-                        event.addCustom(eventProperties);
+                        addCustomProperties(trackEvent, eventProperties);
                     }
-                    Tracker.sendEvent(event);
+                    trackEvent.send();
                     break;
 
                 case MessageType.SCREEN:
@@ -177,20 +170,36 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                     if(screenName == null)
                         return;
                     JSONObject screenProperties = null;
+                    EventApi screenEvent = Event.buildWithEventName("screen view " + screenName);
                     if (element.getProperties() != null && element.getProperties().size() != 0) {
                         screenProperties = new JSONObject(element.getProperties());
                     }
                     if(screenProperties != null && screenProperties.length() != 0) {
                         dateToISOString(screenProperties, element.getProperties());
-                        Tracker.sendEvent("screen view " + screenName, String.valueOf(screenProperties));
-                        return;
+                        addCustomProperties(screenEvent, screenProperties);
                     }
-                    Tracker.sendEvent(new Tracker.Event("screen view " + screenName));
+                    screenEvent.send();
                     break;
 
                 default:
                     RudderLogger.logWarn("MessageType is not specified or supported");
                     break;
+            }
+        }
+    }
+
+    private void addCustomProperties(EventApi event, JSONObject properties) throws JSONException {
+        for (Iterator<String> it = properties.keys(); it.hasNext(); ) {
+            String key = it.next();
+            Object object = properties.get(key);
+            if (object instanceof Boolean) {
+                event.setCustomBoolValue(key, (Boolean)object);
+            } else if (object instanceof String) {
+                event.setCustomStringValue(key, (String)object);
+            } else if (object instanceof Number) {
+                event.setCustomNumberValue(key, (Double)object);
+            } else if (object instanceof Date) {
+                event.setCustomDateValue(key, (Date)object);
             }
         }
     }
@@ -252,7 +261,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
     }
 
     // If eventProperties contains key of Products
-    private void setProductsProperties(JSONArray products, Tracker.Event event) throws JSONException {
+    private void setProductsProperties(JSONArray products, EventApi event) throws JSONException {
         ArrayList<String> productName = new ArrayList<>();
         ArrayList<String> product_id = new ArrayList<>();
         for(int i = 0; i < products.length(); i++) {
@@ -268,16 +277,16 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                 product_id.add(getString(product.get("productId")));
             }
         }
-        if (productName.size() != 0) {
+        if (!productName.isEmpty()) {
             event.setName(productName.toString());
         }
-        if (product_id.size() != 0) {
+        if (!product_id.isEmpty()) {
             event.setContentId(product_id.toString());
         }
     }
 
     // If eventProperties contains key of 'name', 'product_id' or 'productId'
-    private void setProductProperties (JSONObject eventProperties, Tracker.Event event){
+    private void setProductProperties (JSONObject eventProperties, EventApi event){
         try {
             if (eventProperties.has("name")) {
                 event.setName((String) eventProperties.get("name"));
@@ -314,7 +323,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
     }
 
     public static void registeredForPushNotificationsWithFCMToken(String token){
-        Tracker.addPushToken(token);
+        Engagement.getInstance().registerPushToken(token);
         System.out.println("Token is pushed: " + token);
     }
 }
