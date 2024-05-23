@@ -31,7 +31,8 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.6'
 
     //Kochava
-    implementation 'com.kochava.base:tracker:3.10.1'
+    implementation 'com.kochava.tracker:tracker:5.4.0'
+    implementation 'com.kochava.tracker:events:5.4.0'
 }
 
 ext {
