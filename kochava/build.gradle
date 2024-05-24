@@ -3,11 +3,11 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 32
+    compileSdk 33
 
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 32
+        targetSdk 33
         buildConfigField("String", "VERSION_NAME", "\"${VERSION_NAME}\"")
     }
 
@@ -23,14 +23,14 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.annotation:annotation:1.1.0'
-    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'androidx.annotation:annotation:1.8.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     // rudder core sdk
-    implementation 'com.rudderstack.android.sdk:core:[1.0,2.0)'
+    implementation 'com.rudderstack.android.sdk:core:[1.23.0, 2.0.0)'
     // GSON dependency
-    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'com.google.code.gson:gson:2.10.1'
 
-    //Kochava
+    // Kochava
     implementation 'com.kochava.tracker:tracker:5.4.0'
     implementation 'com.kochava.tracker:events:5.4.0'
 }
