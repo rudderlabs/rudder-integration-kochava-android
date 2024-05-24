@@ -120,6 +120,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                     Object eCommerceEventName = eventsMapping.get(eventName.toLowerCase());
                     if (eCommerceEventName != null) {
                         event = buildWithEventName(eCommerceEventName.toString());
+                        eventName = eventName.toLowerCase();
 
                         if (eventProperties != null && eventProperties.length() != 0) {
                             if (eventName.equals("order completed")) {
