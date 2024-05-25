@@ -14,6 +14,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        findViewById<Button>(R.id.identify).setOnClickListener {
+            identify()
+        }
+
+        findViewById<Button>(R.id.reset).setOnClickListener {
+            reset()
+        }
+
         // Standard ECommerce events
         findViewById<Button>(R.id.orderCompletedWithMultipleProductsAsList).setOnClickListener {
             orderCompletedWithMultipleProductsAsList()
@@ -55,6 +63,14 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.screenWithoutProperties).setOnClickListener {
             screenWithoutProperties()
         }
+    }
+
+    private fun identify() {
+        MainApplication.rudderClient.identify("Kochava user ID")
+    }
+
+    private fun reset() {
+        MainApplication.rudderClient.reset(false)
     }
 
     // Standard ECommerce events: https://support.kochava.com/reference-information/post-install-event-examples/
