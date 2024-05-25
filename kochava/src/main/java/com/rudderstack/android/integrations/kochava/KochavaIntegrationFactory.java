@@ -12,6 +12,7 @@ import com.kochava.tracker.Tracker;
 import com.kochava.tracker.TrackerApi;
 import com.kochava.tracker.events.EventApi;
 import com.kochava.tracker.events.EventType;
+import com.kochava.tracker.events.Events;
 import com.kochava.tracker.log.LogLevel;
 import com.rudderstack.android.sdk.core.MessageType;
 import com.rudderstack.android.sdk.core.RudderClient;
@@ -102,9 +103,15 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
         String type = element.getType();
         if (type != null) {
             switch (type) {
+                case MessageType.IDENTIFY:
+                    String userId = element.getUserId();
+                    if (userId != null) {
+                        Events.getInstance().registerDefaultUserId(userId);
+                        RudderLogger.logInfo("User ID: " + userId + " is set successfully in Kochava");
+                    }
+                    break;
 
                 case MessageType.TRACK:
-
                     String eventName = element.getEventName();
                     if (eventName == null)
                         return;
@@ -217,7 +224,8 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
 
     @Override
     public void reset() {
-        RudderLogger.logWarn("Kochava does not support the reset");
+        Events.getInstance().registerDefaultUserId(null);
+        RudderLogger.logInfo("Kochava reset api is called.");
     }
 
     @Override
