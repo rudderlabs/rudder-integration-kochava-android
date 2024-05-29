@@ -2,18 +2,13 @@ package com.rudderstack.android.integrations.kochava;
 
 import static com.kochava.tracker.events.Event.buildWithEventName;
 
-import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.gson.Gson;
-import com.kochava.tracker.Tracker;
-import com.kochava.tracker.TrackerApi;
 import com.kochava.tracker.events.EventApi;
 import com.kochava.tracker.events.EventType;
 import com.kochava.tracker.events.Events;
-import com.kochava.tracker.log.LogLevel;
 import com.rudderstack.android.sdk.core.MessageType;
 import com.rudderstack.android.sdk.core.RudderClient;
 import com.rudderstack.android.sdk.core.RudderConfig;
@@ -50,7 +45,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
     public static Factory FACTORY = new Factory() {
         @Override
         public RudderIntegration<?> create(Object settings, RudderClient client, RudderConfig rudderConfig) {
-            return new KochavaIntegrationFactory(settings, rudderConfig);
+            return new KochavaIntegrationFactory();
         }
 
         @Override
@@ -59,45 +54,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
         }
     };
 
-    private KochavaIntegrationFactory(@NonNull Object config, RudderConfig rudderConfig) {
-        if (RudderClient.getApplication() == null) {
-            RudderLogger.logError("Application is null. Aborting Kochava initialization.");
-            return;
-        }
-
-        Gson gson = new Gson();
-        KochavaDestinationConfig destinationConfig = gson.fromJson(
-                gson.toJson(config),
-                KochavaDestinationConfig.class
-        );
-
-        if (TextUtils.isEmpty(destinationConfig.apiKey)) {
-            RudderLogger.logError("Invalid Kochava Account Credentials, Aborting");
-            return;
-        }
-
-        // Start the Kochava Tracker
-        TrackerApi kochavaInstance = Tracker.getInstance();
-        setKochavaLog(rudderConfig.getLogLevel(), kochavaInstance);
-        kochavaInstance.startWithAppGuid(RudderClient.getApplication(), destinationConfig.apiKey);
-        RudderLogger.logInfo("Initialized Kochava SDK");
-    }
-
-    private void setKochavaLog(int logLevel, TrackerApi kochavaInstance) {
-        if (logLevel >= RudderLogger.RudderLogLevel.VERBOSE) {
-            kochavaInstance.setLogLevel(LogLevel.TRACE);
-        } else if (logLevel == RudderLogger.RudderLogLevel.DEBUG) {
-            kochavaInstance.setLogLevel(LogLevel.DEBUG);
-        } else if (logLevel == RudderLogger.RudderLogLevel.INFO) {
-            kochavaInstance.setLogLevel(LogLevel.INFO);
-        } else if (logLevel == RudderLogger.RudderLogLevel.WARN) {
-            kochavaInstance.setLogLevel(LogLevel.WARN);
-        } else if (logLevel == RudderLogger.RudderLogLevel.ERROR) {
-            kochavaInstance.setLogLevel(LogLevel.ERROR);
-        } else {
-            kochavaInstance.setLogLevel(LogLevel.NONE);
-        }
-    }
+    private KochavaIntegrationFactory() {}
 
     private void processRudderEvent(RudderMessage element) throws JSONException {
         String type = element.getType();

@@ -25,11 +25,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     // rudder core sdk
     implementation 'com.rudderstack.android.sdk:core:[1.23.0, 2.0.0)'
-    // GSON dependency
-    implementation 'com.google.code.gson:gson:2.10.1'
 
     // Kochava
-    implementation 'com.kochava.tracker:tracker:5.4.0'
     implementation 'com.kochava.tracker:events:5.4.0'
 }
 

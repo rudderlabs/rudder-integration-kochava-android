@@ -58,4 +58,7 @@ dependencies {
     testImplementation 'junit:junit:4.13.1'
     androidTestImplementation 'androidx.test:runner:1.3.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+
+    // Kochava SDK
+    implementation 'com.kochava.tracker:tracker:5.4.0'
 }
