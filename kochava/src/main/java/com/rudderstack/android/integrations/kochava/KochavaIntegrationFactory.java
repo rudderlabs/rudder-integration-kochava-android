@@ -83,19 +83,19 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
         RudderLogger.logInfo("Initialized Kochava SDK");
     }
 
-    private void setKochavaLog(int logLevel, TrackerApi koachavaInstance) {
+    private void setKochavaLog(int logLevel, TrackerApi kochavaInstance) {
         if (logLevel >= RudderLogger.RudderLogLevel.VERBOSE) {
-            koachavaInstance.setLogLevel(LogLevel.TRACE);
+            kochavaInstance.setLogLevel(LogLevel.TRACE);
         } else if (logLevel == RudderLogger.RudderLogLevel.DEBUG) {
-            koachavaInstance.setLogLevel(LogLevel.DEBUG);
+            kochavaInstance.setLogLevel(LogLevel.DEBUG);
         } else if (logLevel == RudderLogger.RudderLogLevel.INFO) {
-            koachavaInstance.setLogLevel(LogLevel.INFO);
+            kochavaInstance.setLogLevel(LogLevel.INFO);
         } else if (logLevel == RudderLogger.RudderLogLevel.WARN) {
-            koachavaInstance.setLogLevel(LogLevel.WARN);
+            kochavaInstance.setLogLevel(LogLevel.WARN);
         } else if (logLevel == RudderLogger.RudderLogLevel.ERROR) {
-            koachavaInstance.setLogLevel(LogLevel.ERROR);
+            kochavaInstance.setLogLevel(LogLevel.ERROR);
         } else {
-            koachavaInstance.setLogLevel(LogLevel.NONE);
+            kochavaInstance.setLogLevel(LogLevel.NONE);
         }
     }
 
