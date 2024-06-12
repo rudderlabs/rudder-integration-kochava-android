@@ -1,68 +1,41 @@
 package com.rudderstack.android.sample.kotlin
 
 import android.os.Bundle
-import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import com.rudderlabs.android.sample.kotlin.R
+import com.rudderlabs.android.sample.kotlin.databinding.ActivityMainBinding
 import com.rudderstack.android.sdk.core.RudderProperty
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        findViewById<Button>(R.id.identify).setOnClickListener {
-            identify()
-        }
-
-        findViewById<Button>(R.id.reset).setOnClickListener {
-            reset()
-        }
+        binding.identify.setOnClickListener { identify() }
+        binding.reset.setOnClickListener { reset() }
 
         // Standard ECommerce events
-        findViewById<Button>(R.id.orderCompletedWithMultipleProductsAsList).setOnClickListener {
-            orderCompletedWithMultipleProductsAsList()
-        }
-        findViewById<Button>(R.id.orderCompletedWithMultipleProductsAsJSON).setOnClickListener {
-            orderCompletedWithMultipleProductsAsJSON()
-        }
-        findViewById<Button>(R.id.orderCompletedWithSingleProductAsJSON).setOnClickListener {
-            orderCompletedWithSingleProductAsJSON()
-        }
-        findViewById<Button>(R.id.checkoutStarted).setOnClickListener {
-            checkoutStarted()
-        }
-        findViewById<Button>(R.id.productAdded).setOnClickListener {
-            productAdded()
-        }
-        findViewById<Button>(R.id.productAddedToWishlist).setOnClickListener {
-            productAddedToWishlist()
-        }
-        findViewById<Button>(R.id.productReviewed).setOnClickListener {
-            productReviewed()
-        }
-        findViewById<Button>(R.id.productSearched).setOnClickListener {
-            productSearched()
-        }
+        binding.orderCompletedWithMultipleProductsAsList.setOnClickListener { orderCompletedWithMultipleProductsAsList() }
+        binding.orderCompletedWithMultipleProductsAsJSON.setOnClickListener { orderCompletedWithMultipleProductsAsJSON() }
+        binding.orderCompletedWithSingleProductAsJSON.setOnClickListener { orderCompletedWithSingleProductAsJSON() }
+        binding.checkoutStarted.setOnClickListener { checkoutStarted() }
+        binding.productAdded.setOnClickListener { productAdded() }
+        binding.productAddedToWishlist.setOnClickListener { productAddedToWishlist() }
+        binding.productReviewed.setOnClickListener { productReviewed() }
+        binding.productSearched.setOnClickListener { productSearched() }
 
         // Custom track events
-        findViewById<Button>(R.id.customTrackWithProperties).setOnClickListener {
-            customTrackWithProperties()
-        }
-        findViewById<Button>(R.id.customTrackWithoutProperties).setOnClickListener {
-            customTrackWithoutProperties()
-        }
+        binding.customTrackWithProperties.setOnClickListener { customTrackWithProperties() }
+        binding.customTrackWithoutProperties.setOnClickListener { customTrackWithoutProperties() }
 
         // Screen events
-        findViewById<Button>(R.id.screenWithProperties).setOnClickListener {
-            screenWithProperties()
-        }
-        findViewById<Button>(R.id.screenWithoutProperties).setOnClickListener {
-            screenWithoutProperties()
-        }
+        binding.screenWithProperties.setOnClickListener { screenWithProperties() }
+        binding.screenWithoutProperties.setOnClickListener { screenWithoutProperties() }
     }
 
     private fun identify() {
@@ -74,7 +47,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     // Standard ECommerce events: https://support.kochava.com/reference-information/post-install-event-examples/
-
     private fun orderCompletedWithMultipleProductsAsList() {
         MainApplication.rudderClient.track(
             "Order Completed",
@@ -82,7 +54,6 @@ class MainActivity : AppCompatActivity() {
                 .putValue("products", getMultipleProductsAsList())
                 .putValue("revenue", 8.99)
                 .putValue("currency", "USD")
-
                 .putValue("quantity", 2)
                 .putValue("order_id", "order123")
                 .putValue("checkout_id", "check123")
@@ -100,7 +71,6 @@ class MainActivity : AppCompatActivity() {
                 .putValue("products", getMultipleProductsAsJSON())
                 .putValue("revenue", "15.00")
                 .putValue("currency", "USD")
-
                 .putValue("order_id", 1234)
                 .putValue("affiliation", "Apple Store")
                 .putValue("value", 20)
@@ -160,16 +130,14 @@ class MainActivity : AppCompatActivity() {
     private fun productReviewed() {
         MainApplication.rudderClient.track(
             "product reviewed",
-            RudderProperty()
-                .putValue("rating", 5)
+            RudderProperty().putValue("rating", 5)
         )
     }
 
     private fun productSearched() {
         MainApplication.rudderClient.track(
             "products searched",
-            RudderProperty()
-                .putValue("query", "www.facebook.com")
+            RudderProperty().putValue("query", "www.facebook.com")
         )
     }
 
@@ -209,7 +177,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     // Standard event properties
-
     private fun getMultipleProductsAsList(): List<Map<String, Any>> {
         val product1 = mapOf("product_id" to "pro1", "name" to "monopoly")
         val product2 = mapOf("product_id" to "pro2", "name" to "games")
@@ -219,28 +186,30 @@ class MainActivity : AppCompatActivity() {
     private fun getMultipleProductsAsJSON(): JSONArray {
         val productsArray = JSONArray()
 
-        val product1 = JSONObject()
-        product1.put("product_id", 123.87)
-        product1.put("name", "Monopoly")
+        val product1 = JSONObject().apply {
+            put("product_id", 123.87)
+            put("name", "Monopoly")
+        }
 
-        val product2 = JSONObject()
-        product2.put("productId", "345")
-        product2.put("name", "UNO")
+        val product2 = JSONObject().apply {
+            put("productId", "345")
+            put("name", "UNO")
+        }
 
         productsArray.put(product1)
         productsArray.put(product2)
-
         return productsArray
     }
 
     private fun getSingleProductsAsJSON(): JSONArray {
-        val product1 = JSONObject()
-        product1.put("product_id", 123.87)
-        product1.put("name", "Monopoly")
-
         val productsArray = JSONArray()
-        productsArray.put(product1)
 
+        val product1 = JSONObject().apply {
+            put("product_id", 123.87)
+            put("name", "Monopoly")
+        }
+
+        productsArray.put(product1)
         return productsArray
     }
 
