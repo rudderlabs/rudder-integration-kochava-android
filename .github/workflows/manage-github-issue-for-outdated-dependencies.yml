@@ -19,7 +19,7 @@ jobs:
           outdated-dependency-names: "com.kochava.base:tracker"
           directory: "kochava/build.gradle"
           title: "fix: update Kochava SDK to the latest version"
-          assignee: "desusai7"
+          assignee: "@rudderlabs/sdk-android"
           labels: "outdatedDependency"
           color: "FBCA04"
         env:
