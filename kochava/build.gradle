@@ -29,8 +29,8 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
 
     // Kochava
-    implementation 'com.kochava.tracker:tracker:5.4.0'
-    implementation 'com.kochava.tracker:events:5.4.0'
+    implementation 'com.kochava.tracker:tracker:5.6.0'
+    implementation 'com.kochava.tracker:events:5.6.0'
 }
 
 apply from: rootProject.file('gradle/mvn-publish.gradle')
