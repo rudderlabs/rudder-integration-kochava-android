@@ -1,13 +1,19 @@
 package com.rudderstack.android.integrations.kochava;
 
+import static com.kochava.tracker.events.Event.buildWithEventName;
+
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.gson.Gson;
-import com.kochava.base.Tracker;
-import com.kochava.base.Tracker.Configuration;
+import com.kochava.tracker.Tracker;
+import com.kochava.tracker.TrackerApi;
+import com.kochava.tracker.events.EventApi;
+import com.kochava.tracker.events.EventType;
+import com.kochava.tracker.events.Events;
+import com.kochava.tracker.log.LogLevel;
 import com.rudderstack.android.sdk.core.MessageType;
 import com.rudderstack.android.sdk.core.RudderClient;
 import com.rudderstack.android.sdk.core.RudderConfig;
@@ -30,14 +36,14 @@ import java.util.TimeZone;
 
 public class KochavaIntegrationFactory extends RudderIntegration<Void> {
     private static final String KOCHAVA_KEY = "Kochava";
-    private static final Map<String, Object> eventsMapping = new HashMap<String, Object>(){
+    private static final Map<String, Object> eventsMapping = new HashMap<String, Object>() {
         {
-            put("product added", Tracker.EVENT_TYPE_ADD_TO_CART);
-            put("product added to wishlist", Tracker.EVENT_TYPE_ADD_TO_WISH_LIST);
-            put("checkout started", Tracker.EVENT_TYPE_CHECKOUT_START);
-            put("order completed", Tracker.EVENT_TYPE_PURCHASE);
-            put("product reviewed", Tracker.EVENT_TYPE_RATING);
-            put("products searched", Tracker.EVENT_TYPE_SEARCH);
+            put("product added", EventType.ADD_TO_CART);
+            put("product added to wishlist", EventType.ADD_TO_WISH_LIST);
+            put("checkout started", EventType.CHECKOUT_START);
+            put("order completed", EventType.PURCHASE);
+            put("product reviewed", EventType.RATING);
+            put("products searched", EventType.SEARCH);
         }
     };
 
@@ -65,48 +71,67 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                 KochavaDestinationConfig.class
         );
 
-
         if (TextUtils.isEmpty(destinationConfig.apiKey)) {
             RudderLogger.logError("Invalid Kochava Account Credentials, Aborting");
             return;
         }
 
         // Start the Kochava Tracker
-        Tracker.configure(new Configuration(RudderClient.getApplication())
-                .setAppGuid(destinationConfig.apiKey)
-                .setLogLevel(rudderConfig.getLogLevel())
-        );
+        TrackerApi kochavaInstance = Tracker.getInstance();
+        setKochavaLog(rudderConfig.getLogLevel(), kochavaInstance);
+        kochavaInstance.startWithAppGuid(RudderClient.getApplication(), destinationConfig.apiKey);
         RudderLogger.logInfo("Initialized Kochava SDK");
+    }
+
+    private void setKochavaLog(int logLevel, TrackerApi kochavaInstance) {
+        if (logLevel >= RudderLogger.RudderLogLevel.VERBOSE) {
+            kochavaInstance.setLogLevel(LogLevel.TRACE);
+        } else if (logLevel == RudderLogger.RudderLogLevel.DEBUG) {
+            kochavaInstance.setLogLevel(LogLevel.DEBUG);
+        } else if (logLevel == RudderLogger.RudderLogLevel.INFO) {
+            kochavaInstance.setLogLevel(LogLevel.INFO);
+        } else if (logLevel == RudderLogger.RudderLogLevel.WARN) {
+            kochavaInstance.setLogLevel(LogLevel.WARN);
+        } else if (logLevel == RudderLogger.RudderLogLevel.ERROR) {
+            kochavaInstance.setLogLevel(LogLevel.ERROR);
+        } else {
+            kochavaInstance.setLogLevel(LogLevel.NONE);
+        }
     }
 
     private void processRudderEvent(RudderMessage element) throws JSONException {
         String type = element.getType();
         if (type != null) {
             switch (type) {
+                case MessageType.IDENTIFY:
+                    String userId = element.getUserId();
+                    if (userId != null) {
+                        Events.getInstance().registerDefaultUserId(userId);
+                        RudderLogger.logInfo("User ID: " + userId + " is set successfully in Kochava");
+                    }
+                    break;
 
                 case MessageType.TRACK:
-
                     String eventName = element.getEventName();
-                    if(eventName == null)
+                    if (eventName == null)
                         return;
 
-
                     JSONObject eventProperties = null;
-                    if (element.getProperties() != null && element.getProperties().size() != 0) {
+                    if (element.getProperties() != null && !element.getProperties().isEmpty()) {
                         eventProperties = new JSONObject(element.getProperties());
                     }
-                    Tracker.Event event = null;
 
-                    //Standard Events
-                    if(eventsMapping.containsKey(eventName.toLowerCase())) {
+                    EventApi event;
 
+                    // Standard ECommerce Events
+                    Object eCommerceEventName = eventsMapping.get(eventName.toLowerCase());
+                    if (eCommerceEventName != null) {
+                        event = buildWithEventName(eCommerceEventName.toString());
                         eventName = eventName.toLowerCase();
-                        event = new Tracker.Event((Integer) eventsMapping.get(eventName));
 
                         if (eventProperties != null && eventProperties.length() != 0) {
-
                             if (eventName.equals("order completed")) {
-                                if(eventProperties.has("products")){
+                                if (eventProperties.has("products")) {
                                     setProductsProperties(getJSONArray(eventProperties.get("products")), event);
                                     eventProperties.remove("products");
                                 }
@@ -121,7 +146,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                             }
 
                             if (eventName.equals("checkout started")) {
-                                if(eventProperties.has("products")){
+                                if (eventProperties.has("products")) {
                                     setProductsProperties(getJSONArray(eventProperties.get("products")), event);
                                     eventProperties.remove("products");
                                 }
@@ -161,33 +186,35 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
 
                     // Custom Events
                     else {
-                        event = new Tracker.Event(eventName);
+                        event = buildWithEventName(eventName);
                     }
 
                     // Getting the Custom Properties
                     if (eventProperties != null && eventProperties.length() != 0) {
                         dateToISOString(eventProperties, element.getProperties());
-                        event.addCustom(eventProperties);
+                        event.mergeCustomDictionary(eventProperties);
                     }
-                    Tracker.sendEvent(event);
+                    event.send();
                     break;
 
                 case MessageType.SCREEN:
                     String screenName = element.getEventName();
-                    if(screenName == null)
+                    if (screenName == null)
                         return;
                     JSONObject screenProperties = null;
-                    if (element.getProperties() != null && element.getProperties().size() != 0) {
+                    if (element.getProperties() != null && !element.getProperties().isEmpty()) {
                         screenProperties = new JSONObject(element.getProperties());
                     }
-                    if(screenProperties != null && screenProperties.length() != 0) {
+                    if (screenProperties != null && screenProperties.length() != 0) {
                         dateToISOString(screenProperties, element.getProperties());
-                        Tracker.sendEvent("screen view " + screenName, String.valueOf(screenProperties));
+                        buildWithEventName("screen view " + screenName)
+                                .mergeCustomDictionary(screenProperties)
+                                .send();
                         return;
                     }
-                    Tracker.sendEvent(new Tracker.Event("screen view " + screenName));
+                    buildWithEventName("screen view " + screenName)
+                            .send();
                     break;
-
                 default:
                     RudderLogger.logWarn("MessageType is not specified or supported");
                     break;
@@ -197,7 +224,8 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
 
     @Override
     public void reset() {
-        RudderLogger.logWarn("Kochava does not support the reset");
+        Events.getInstance().registerDefaultUserId(null);
+        RudderLogger.logInfo("Kochava reset api is called.");
     }
 
     @Override
@@ -215,19 +243,17 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
     private double getDouble(Object val) {
         if (val instanceof String) {
             return Double.parseDouble((String) val);
-        }
-        else if (val instanceof Integer) {
-           return Double.valueOf((Integer) val);
+        } else if (val instanceof Integer) {
+            return Double.valueOf((Integer) val);
         }
         return (Double) val;
     }
 
     // To get String type variable
     private String getString(Object val) {
-        if(val instanceof Integer) {
+        if (val instanceof Integer) {
             return Integer.toString((Integer) val);
-        }
-        else if(val instanceof Double) {
+        } else if (val instanceof Double) {
             return Double.toString((Double) val);
         }
         return (String) val;
@@ -241,9 +267,9 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
         if (object instanceof JSONObject) {
             return new JSONArray().put(object);
         }
-        if(object instanceof List){
+        if (object instanceof List) {
             ArrayList<Object> arrayList = new ArrayList<>();
-            for(Object element: (List) object ) {
+            for (Object element : (List) object) {
                 arrayList.add(element);
             }
             return new JSONArray(arrayList);
@@ -252,10 +278,10 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
     }
 
     // If eventProperties contains key of Products
-    private void setProductsProperties(JSONArray products, Tracker.Event event) throws JSONException {
+    private void setProductsProperties(JSONArray products, EventApi event) throws JSONException {
         ArrayList<String> productName = new ArrayList<>();
         ArrayList<String> product_id = new ArrayList<>();
-        for(int i = 0; i < products.length(); i++) {
+        for (int i = 0; i < products.length(); i++) {
             JSONObject product = (JSONObject) products.get(i);
             if (product.has("name")) {
                 productName.add((String) product.get(("name")));
@@ -277,7 +303,7 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
     }
 
     // If eventProperties contains key of 'name', 'product_id' or 'productId'
-    private void setProductProperties (JSONObject eventProperties, Tracker.Event event){
+    private void setProductProperties(JSONObject eventProperties, EventApi event) {
         try {
             if (eventProperties.has("name")) {
                 event.setName((String) eventProperties.get("name"));
@@ -311,10 +337,5 @@ public class KochavaIntegrationFactory extends RudderIntegration<Void> {
                 RudderLogger.logError("Error occurred at dateToISOString method " + e);
             }
         }
-    }
-
-    public static void registeredForPushNotificationsWithFCMToken(String token){
-        Tracker.addPushToken(token);
-        System.out.println("Token is pushed: " + token);
     }
 }
